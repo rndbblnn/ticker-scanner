@@ -39,7 +39,8 @@ logging:
     org.springframework: INFO
     org.flyway: INFO
     com.zaxxer.hikari: WARN
-    org.hibernate: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.dql: TRACE
     io.netty: WARN
     reactor.netty: WARN
     org.jboss: WARN

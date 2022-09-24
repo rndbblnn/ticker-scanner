@@ -10,12 +10,15 @@ import org.redisson.spring.cache.RedissonSpringCacheManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
 
+import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +28,14 @@ import java.util.Map;
 public class TickerScannerConfig implements AsyncConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TickerScannerConfig.class);
+
+    @Autowired
+    private DataSource dataSource;
+
+    @Bean
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
+        return new NamedParameterJdbcTemplate(dataSource);
+    }
 
     @Bean
     public ModelMapper modelMapper() {
