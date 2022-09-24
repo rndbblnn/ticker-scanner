@@ -1,0 +1,49 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/stonks
+    username: postgres
+    password: password
+  jpa:
+    generate-ddl: 'false'
+    database: POSTGRESQL
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: 'true'
+    show-sql: 'false'
+    hibernate:
+      ddl-auto: none
+  thymeleaf:
+    cache: false
+    mode: LEGACYHTML5
+#    prefix: /templates/
+  resources:
+    static-locations: classpath:/resources
+    cache:
+      period: 0
+  devtools:
+    restart:
+      enabled: true
+  cache:
+    type: redis
+    redis:
+      cache-null-values: true
+
+logging:
+  level:
+    com.rno: INFO
+    org.springframework: INFO
+    org.flyway: INFO
+    com.zaxxer.hikari: WARN
+    org.hibernate: WARN
+    io.netty: WARN
+    reactor.netty: WARN
+    org.jboss: WARN
+    org.redisson: WARN
+    org.thymeleaf: INFO
+    com.datastax.oss: INFO
+    org.apache.commons.beanutils: INFO

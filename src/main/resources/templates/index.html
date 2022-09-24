@@ -1,0 +1,103 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>main page</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link th:href="@{default.css}" rel="stylesheet" />
+    <style>
+        table {
+          margin:200px auto 0 auto;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <form method="get" action="/pnloverview">
+        <table class="sortable" style="width:35%">
+            <tbody>
+            <tr>
+                <td>patternName</td>
+                <td>
+                    <select name="patternName">
+                        <option th:each="pe : ${T(com.rno.tickertracker.dto.PatternEnum).values()}"
+                                th:value="${pe}" th:text="${pe}"></option>
+                     </select>
+                </td>
+            </tr>
+            <tr>
+                <td>tradeDirection</td>
+                <td>
+                    <select name="tradeDirection">
+                        <option th:each="td : ${T(com.rno.tickertracker.dto.TradeDirection).values()}"
+                                th:value="${td}" th:text="${td}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>initialEquity</td>
+                <td><input type="text" name="initialEquity" value="100000"></td>
+            </tr>
+            <tr>
+                <td>leverage</td>
+                <td>
+                    <select name="leverage">
+                        <option value="1">None</option>
+                        <option value="2">2x</option>
+                        <option value="3">3x</option>
+                        <option value="4">4x</option>
+                        <option value="5">5x</option>
+                        <option value="6">6x</option>
+                </select></td>
+            </tr>
+            <tr>
+                <td>capitalPerTradePct</td>
+                <td><input type="text" name="capitalPerTradePct" value="0.1"></td>
+            </tr>
+            <tr>
+                <td>tradeEntryType</td>
+                <td>
+                    <select name="tradeEntryType">
+                        <option th:each="tst : ${T(com.rno.tickertracker.dto.TradeEntryType).values()}"
+                                th:value="${tst}" th:text="${tst}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>priceTargetPct</td>
+                <td><input type="text" name="priceTargetPct" value="0"></td>
+            </tr>
+            <tr>
+                <td>tradeStopType</td>
+                <td>
+                    <select name="tradeStopType">
+                        <option th:each="tst : ${T(com.rno.tickertracker.dto.TradeStopType).values()}"
+                                th:value="${tst}" th:text="${tst}"></option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>trailStopPct</td>
+                <td><input type="text" name="trailStopPct" value=""></td>
+            </tr>
+            <tr>
+                <td>maxLossDollar</td>
+                <td><input type="text" name="maxLossDollar" value="0"></td>
+            </tr>
+            <tr>
+                <td>maxLossPct</td>
+                <td><input type="text" name="maxLossPct" value="0.05"></td>
+            </tr>
+            <tr>
+                <td>maxDaysToHold</td>
+                <td><input type="text" name="maxDaysToHold" value="20"></td>
+            </tr>
+            </tbody>
+        </table>
+        <div class="center">
+            <input type="submit" value="submit" id="submit"/>
+        </div>
+    </form>
+</div>
+</body>
+</html>

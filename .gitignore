@@ -1,0 +1,15 @@
+# Eclipse
+.classpath
+.project
+.settings/
+.gradle/
+
+# Maven
+target/
+
+# Compiled class file
+*.class
+
+output/
+build/
+.gradle/

@@ -1,0 +1,102 @@
+plugins {
+	id 'org.springframework.boot' version '2.6.2'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+	id 'idea'
+}
+
+idea {
+	module {
+		inheritOutputDirs = false
+		outputDir = file("$buildDir/classes/main/")
+	}
+}
+
+group = 'com.rno'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+	compileOnly {
+		extendsFrom annotationProcessor
+	}
+}
+
+repositories {
+	mavenCentral()
+	maven { url "https://jitpack.io" }
+	maven { url "https://maven.zohodl.com" }
+}
+
+dependencies {
+	// spring stuff
+	//implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+	implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+	implementation 'org.springframework.boot:spring-boot-starter-cache'
+	implementation 'org.springframework:springloaded:1.2.8.RELEASE'
+
+	// DB
+	runtimeOnly 'org.postgresql:postgresql'
+
+	// caching
+	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+//	implementation 'org.springframework.session:spring-session-data-redis:2.6.1'
+
+	implementation 'de.ruedigermoeller:fst:3.0.3'
+	implementation 'com.esotericsoftware:kryo:5.2.1'
+	implementation 'org.redisson:redisson-spring-boot-starter:3.16.8'
+
+	// web shit
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-webflux'
+
+
+
+	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+	annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+	
+	// sheet shit
+	implementation 'com.opencsv:opencsv:5.5.2'
+
+	// utils
+	implementation 'ch.qos.logback:logback-classic:1.2.9'
+	implementation 'com.google.guava:guava:31.0.1-jre'
+	implementation 'org.apache.commons:commons-lang3:3.12.0'
+	implementation 'org.apache.commons:commons-math3:3.6.1'
+	implementation 'commons-io:commons-io:2.11.0'
+
+	implementation 'org.projectlombok:lombok:1.18.20'
+	implementation 'org.seleniumhq.selenium:selenium-java:3.6.0'
+	implementation 'io.netty:netty-tcnative-boringssl-static:2.0.46.Final' // for spring's WebClient
+	implementation 'org.modelmapper.extensions:modelmapper-spring:3.1.0'
+
+	compileOnly 'org.projectlombok:lombok:1.18.22'
+	annotationProcessor 'org.projectlombok:lombok:1.18.22'
+	testCompileOnly 'org.projectlombok:lombok:1.18.22'
+	testAnnotationProcessor 'org.projectlombok:lombok:1.18.22'
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'io.projectreactor:reactor-test'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+	testImplementation 'junit:junit:4.13.2'
+	testImplementation("org.junit.jupiter:junit-jupiter-api:5.4.2")
+	testImplementation 'org.mockito:mockito-core:4.2.0'
+
+	testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.4.2")
+}
+
+apply plugin: 'idea'
+
+idea {
+	module {
+		inheritOutputDirs = false
+		outputDir = file("$buildDir/classes/main/")
+	}
+}
+
+test {
+	useJUnitPlatform()
+}
