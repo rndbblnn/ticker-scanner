@@ -20,7 +20,7 @@
                 <td>patternName</td>
                 <td>
                     <select name="patternName">
-                        <option th:each="pe : ${T(com.rno.tickertracker.dto.PatternEnum).values()}"
+                        <option th:each="pe : ${T(com.rno.tickerscanner.dto.PatternEnum).values()}"
                                 th:value="${pe}" th:text="${pe}"></option>
                      </select>
                 </td>
@@ -29,7 +29,7 @@
                 <td>tradeDirection</td>
                 <td>
                     <select name="tradeDirection">
-                        <option th:each="td : ${T(com.rno.tickertracker.dto.TradeDirection).values()}"
+                        <option th:each="td : ${T(com.rno.tickerscanner.dto.TradeDirection).values()}"
                                 th:value="${td}" th:text="${td}"></option>
                     </select>
                 </td>
@@ -58,7 +58,7 @@
                 <td>tradeEntryType</td>
                 <td>
                     <select name="tradeEntryType">
-                        <option th:each="tst : ${T(com.rno.tickertracker.dto.TradeEntryType).values()}"
+                        <option th:each="tst : ${T(com.rno.tickerscanner.dto.TradeEntryType).values()}"
                                 th:value="${tst}" th:text="${tst}"></option>
                     </select>
                 </td>
@@ -71,7 +71,7 @@
                 <td>tradeStopType</td>
                 <td>
                     <select name="tradeStopType">
-                        <option th:each="tst : ${T(com.rno.tickertracker.dto.TradeStopType).values()}"
+                        <option th:each="tst : ${T(com.rno.tickerscanner.dto.TradeStopType).values()}"
                                 th:value="${tst}" th:text="${tst}"></option>
                     </select>
                 </td>
