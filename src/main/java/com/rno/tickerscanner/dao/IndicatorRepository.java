@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.Criteria;
+import com.rno.tickerscanner.IndicatorFilter;
 import com.rno.tickerscanner.dao.entity.IndicatorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -35,6 +35,7 @@ public class IndicatorRepository {
                 "    id varchar(36) NOT NULL," +
                 "    symbol varchar(12) NOT NULL," +
                 "    tick_time timestamp NOT NULL," +
+                "    value DOUBLE PRECISION NULL," +
                 "    CONSTRAINT "+ tableName +"_pk PRIMARY KEY (id)," +
                 "    CONSTRAINT "+ tableName +"_uk UNIQUE (symbol, tick_time)" +
                 ")"
@@ -42,8 +43,7 @@ public class IndicatorRepository {
         .executeUpdate();
   }
 
-  public Optional<IndicatorEntity> findLatest(Criteria criteria, String symbol) {
-
+  public Optional<IndicatorEntity> findLatest(IndicatorFilter criteria, String symbol) {
     return namedParameterJdbcTemplate.query(
         "SELECT id,symbol,tick_time FROM " + criteria.getTableName() +
             " WHERE symbol = :symbol " +
@@ -55,16 +55,36 @@ public class IndicatorRepository {
             new IndicatorEntity()
                 .setSymbol(rs.getString("symbol"))
     ).stream().findFirst();
+  }
 
-//     return (IndicatorEntity) entityManager.createNativeQuery(
-//        "SELECT * FROM :tableName" +
-//            " WHERE symbol = :symbol  LIMIT 1 OFFSET :offset",
-//         IndicatorEntity.class
-//    )
-//         .setParameter("tableName", criteria.getTableName())
-//         .setParameter("symbol", symbol)
-//         .setParameter("offset", criteria.getRange() + criteria.getOffset())
-//         .getSingleResult();
+  public void crunchSma(IndicatorFilter criteria) {
+    this.insertSymbols(criteria.getTableName());
+    namedParameterJdbcTemplate.update(
+        "UPDATE "+ criteria.getTableName() +" src SET value = ind.value \n" +
+            "FROM (\n" +
+            "\tselect symbol, tick_time, \n" +
+            "\t\tAVG(close_price) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t  FROM ticks\n" +
+            "\t ) ind\n" +
+            " WHERE src.value IS NULL\n" +
+            " AND src.symbol = ind.symbol\n" +
+            " AND src.tick_time = ind.tick_time",
+        new MapSqlParameterSource("range", criteria.getRange()-1)
+    );
+  }
+
+
+  private void insertSymbols(String tableName) {
+    namedParameterJdbcTemplate.update(
+        "INSERT INTO "+ tableName +" (id, symbol, tick_time, value)\n" +
+            "\tSELECT gen_random_uuid(), ticks.symbol, ticks.tick_time, null \n" +
+            "\tFROM ticks\n" +
+            "\tLEFT OUTER JOIN "+ tableName +" ON ticks.symbol = "+ tableName +".symbol\n" +
+            "\t  AND ticks.tick_time  = "+ tableName +".tick_time\n" +
+            "\tWHERE "+ tableName +".value IS NULL",
+        new MapSqlParameterSource()
+    );
+
   }
 
 }

@@ -1,0 +1,36 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+    
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}"
+        },
+        {
+            "type": "java",
+            "name": "Launch TickerScannerApplication",
+            "request": "launch",
+            "mainClass": "com.rno.tickerscanner.TickerScannerApplication",
+            "projectName": "ticker-scanner"
+        },
+        {
+            "type": "java",
+            "name": "Launch TickerScannerConstants",
+            "request": "launch",
+            "mainClass": "com.rno.tickerscanner.TickerScannerConstants",
+            "projectName": "ticker-scanner"
+        },
+        {
+            "type": "java",
+            "name": "Launch DateUtils",
+            "request": "launch",
+            "mainClass": "com.rno.tickerscanner.utils.DateUtils",
+            "projectName": "ticker-scanner"
+        }
+    ]
+}

@@ -2,10 +2,12 @@ package com.rno.tickerscanner;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
 @AllArgsConstructor
-public class Criteria {
+public class IndicatorFilter implements Filter {
 
   private IndicatorEnum indicator;
   private int range;

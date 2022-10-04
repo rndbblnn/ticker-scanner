@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.crunch;
 
-import com.rno.tickerscanner.Criteria;
+import com.rno.tickerscanner.IndicatorFilter;
 import com.rno.tickerscanner.dao.IndicatorRepository;
 import com.rno.tickerscanner.dao.TickRepository;
 import com.rno.tickerscanner.dao.entity.TickEntity;
@@ -9,16 +9,35 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 @Component
 @AllArgsConstructor
-public class Cruncher {
+public class Scan {
 
   private final TickRepository tickRepository;
   private final IndicatorRepository indicatorRepository;
 
-  public void prepare() {
+  public void run(String query) {
+
+    prepare();
+
+    List<IndicatorFilter> criteriaList = this.parseQuery(query);
+    criteriaList.forEach(this::crunchCriteria);
+
+  }
+
+  List<IndicatorFilter> parseQuery(String query) {
+    List<IndicatorFilter> criteriaList = new ArrayList<>();
+
+
+
+    return criteriaList;
+  }
+
+  private void prepare() {
     // check if latest OHLCV
 
     // crunch ticks table (TR)
@@ -26,12 +45,12 @@ public class Cruncher {
     tickRepository.updateTrPct();
   }
 
-  public void crunchCriteria(Criteria criteria) {
+  private void crunchCriteria(IndicatorFilter criteria) {
 
     indicatorRepository.createIndTable(criteria.getTableName());
 
     switch (criteria.getIndicator()) {
-      case SMA:
+      case AVGC:
         indicatorRepository.crunchSma(criteria);
         break;
     }
