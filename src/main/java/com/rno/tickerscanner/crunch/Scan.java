@@ -3,7 +3,6 @@ package com.rno.tickerscanner.crunch;
 import com.rno.tickerscanner.Criteria;
 import com.rno.tickerscanner.dao.IndicatorRepository;
 import com.rno.tickerscanner.dao.TickRepository;
-import com.rno.tickerscanner.dao.entity.IndicatorEntity;
 import com.rno.tickerscanner.dao.entity.TickEntity;
 import com.rno.tickerscanner.utils.DateUtils;
 import lombok.AllArgsConstructor;
@@ -19,28 +18,23 @@ public class Cruncher {
   private final TickRepository tickRepository;
   private final IndicatorRepository indicatorRepository;
 
-  public void crunch(Criteria criteria) {
-
-
-
+  public void prepare() {
     // check if latest OHLCV
 
-    // crunch ind
+    // crunch ticks table (TR)
+    tickRepository.updateTr();
+    tickRepository.updateTrPct();
+  }
+
+  public void crunchCriteria(Criteria criteria) {
+
     indicatorRepository.createIndTable(criteria.getTableName());
 
-    Optional<IndicatorEntity> latestIndicator = indicatorRepository.findLatest(
-      criteria,
-        "TSLA"
-    );
-
-    System.out.println(latestIndicator);
-
-
-
-    // check if latest
-
-    // crunch it
-
+    switch (criteria.getIndicator()) {
+      case SMA:
+        indicatorRepository.crunchSma(criteria);
+        break;
+    }
   }
 
   public void fetchOHLCV() {
@@ -62,5 +56,6 @@ public class Cruncher {
     );
 
   }
+
 
 }
