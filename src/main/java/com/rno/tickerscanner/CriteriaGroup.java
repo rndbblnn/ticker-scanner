@@ -8,19 +8,19 @@ import lombok.Data;
 @Data
 public class CriteriaGroup {
     
-    private List<Filter> filters = new ArrayList<>();
+    private List<Criteria> criterias = new ArrayList<>();
 
-    public CriteriaGroup addFilter(Filter filter) {
+    // public CriteriaGroup addFilter(Filter filter) {
 
-        if (!filters.isEmpty()) {
-            Object lastFilter = filters.get(filters.size()-1);
-            if (lastFilter.getClass() == filter.getClass() ) {
-                throw new RuntimeException(filter.getClass() + " == " + lastFilter.getClass());
-            }
+    //     if (!filters.isEmpty()) {
+    //         Object lastFilter = filters.get(filters.size()-1);
+    //         if (lastFilter.getClass() == filter.getClass() ) {
+    //             throw new RuntimeException(filter.getClass() + " == " + lastFilter.getClass());
+    //         }
 
-        }
+    //     }
 
-        this.filters.add(filter);
-        return this;
-    }
+    //     this.filters.add(filter);
+    //     return this;
+    // }
 }

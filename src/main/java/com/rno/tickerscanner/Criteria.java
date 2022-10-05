@@ -5,8 +5,10 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class NumberFilter implements Filter {
+public class Criteria {
 
-    private double number;
+    private Filter left;
+    private OperatorEnum operator;
+    private Filter right;
     
 }

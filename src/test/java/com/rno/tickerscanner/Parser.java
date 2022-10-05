@@ -3,8 +3,7 @@ package com.rno.tickerscanner;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -13,8 +12,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class Parser {
 
-  private static final Pattern OHLCV_PATTERN = Pattern.compile("^([O,H,L,C,V])\\.([0-9]+$)");
-  private static final Pattern AVGMINMAX_PATTERN = Pattern.compile("^([A-Z]*)([0-9]+$)\\.([0-9]+$)");
+  /**
+   *
+   */
+  private static final String OPERATOR_PATTERN_STR = "(\\>\\=|\\<\\=|\\=|\\<|\\>)";
+  private static final String TIMEFRAME_PATTERN_STR = "(\\[(3m|5m|15m|30m|1h|4h|d|m)\\])";
+  private static final String INDICATOR_PATTERN_STR = TIMEFRAME_PATTERN_STR + "[O,H,L,C,V]{1}\\.[0-9]+$";
+  private static final String FUNCTION_PATTERN_STR = TIMEFRAME_PATTERN_STR + "[A-Z]{3,6}[0-9]{1,4}\\.[0-9]{1,4}";
 
   private String query;
   private List<CriteriaGroup> criteriaList = new ArrayList<>();
@@ -28,58 +32,60 @@ public class Parser {
 
     for (String line : lineArr) {
       if (line.startsWith("(")) {
-        parseLine(line)
-            .stream()
-            .forEach(criteriaGroup::addFilter);
+        criteriaGroup.getCriterias().add(parseLine(line));
       }
     }
 
     return criteriaList;
   }
 
-  private static List<Filter> parseLine(String line) {
+  private static Criteria parseLine(String line) {
 
+
+    System.out.println("[d]SMA10.2".matches(FUNCTION_PATTERN_STR));
+
+    
     line = line.replaceAll("\\s", "");
-
-    line.chars()
-      .forEachOrdered(i -> {
-
-        String s = Character.toString((char)i);
+    System.out.println("line: " + line);
 
 
-        if (s.matches("[A-Z]")) {
 
-        }
+    List<Filter> filters = 
+      Arrays.stream(line.split(OPERATOR_PATTERN_STR))
+          .map(filterStr -> {
+            System.out.println("\tfilterStr: " + filterStr);
+            if (filterStr.matches("[0-9]")) {
+              return new NumberFilter(Double.valueOf(filterStr));
+            }
+            if (filterStr.matches(INDICATOR_PATTERN_STR)) {
+              return new IndicatorFilter()
+                .setIndicator(IndicatorEnum.valueOf(Character.toString(filterStr.charAt(filterStr.indexOf("]") + 1))))
+                .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+            }
+            if (filterStr.matches(FUNCTION_PATTERN_STR)) {
+              return new IndicatorFilter()
+                .setIndicator(IndicatorEnum.fromLine(filterStr))
+                .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+            }
+            return null;
+          })
+          .collect(Collectors.toList());
+
+      Criteria criteria = new Criteria(filters.get(0), OperatorEnum.fromLine(line), filters.get(1));
+
+      System.out.println(criteria);
+
+      return criteria;
 
 
-      });
-
-
-    Matcher matcher = Pattern.compile("(\\<\\=|\\=|\\<|\\>)|(([O,H,L,C,V])\\.([0-9]+$))")
-        .matcher(line);
-
-    // System.out.println(matcher.find());
-    // System.out.println(matcher.groupCount());
-
-    if (matcher.find()) {
-
-      System.out.println("\tfind");
-
-      for (int i = 0; i < matcher.groupCount(); i++) {
-
-        System.out.println("\t\tgroup: " + i);
-        System.out.println(matcher.group(i));
-      }
-
-    }
-
-    return null;
   }
+
+
 
   @Test
   public void testParseLine() {
 
-    parseLine("C.0 = [d]SMA10.0 ");
+    parseLine("[d]C.1 = [d]AVGC10.2 ");
 
   }
 
@@ -112,8 +118,8 @@ public class Parser {
   @Test
   public void testParseQuery() {
 
-    String query = "[d]C.0 > [d]SMA10.0 " +
-        "AND [d]C.0 > [d]SMA20.0 " +
+    String query = "[d]C.0 > [d]AVGC10.0 " +
+        "AND [d]C.0 > [d]AVGC20.0 " +
         "AND (" +
         "   [d]DV.0 > 3 " +
         "   OR [d]MINDV5.5 > 3" +
