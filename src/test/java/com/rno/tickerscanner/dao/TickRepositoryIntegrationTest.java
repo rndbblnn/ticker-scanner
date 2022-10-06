@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.BaseTest;
+import com.rno.tickerscanner.BaseIntegrationTest;
 import com.rno.tickerscanner.dao.entity.TickEntity;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
@@ -9,7 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-public class TickRepositoryTest extends BaseTest {
+public class TickRepositoryIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private TickRepository tickRepository;

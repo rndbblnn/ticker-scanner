@@ -1,13 +1,13 @@
 package com.rno.tickerscanner.api.fmp;
 
-import com.rno.tickerscanner.BaseTest;
+import com.rno.tickerscanner.BaseIntegrationTest;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
-public class FmpApiClientTest extends BaseTest {
+public class FmpApiClientIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private FmpApiClient fmpApiClient;

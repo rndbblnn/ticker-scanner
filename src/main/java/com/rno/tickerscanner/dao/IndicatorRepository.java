@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.IndicatorFilter;
+import com.rno.tickerscanner.aql.IndicatorFilter;
 import com.rno.tickerscanner.dao.entity.IndicatorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -36,8 +36,8 @@ public class IndicatorRepository {
                 "    symbol varchar(12) NOT NULL," +
                 "    tick_time timestamp NOT NULL," +
                 "    value DOUBLE PRECISION NULL," +
-                "    CONSTRAINT "+ tableName +"_pk PRIMARY KEY (id)," +
-                "    CONSTRAINT "+ tableName +"_uk UNIQUE (symbol, tick_time)" +
+                "    CONSTRAINT " + tableName + "_pk PRIMARY KEY (id)," +
+                "    CONSTRAINT " + tableName + "_uk UNIQUE (symbol, tick_time)" +
                 ")"
         )
         .executeUpdate();
@@ -57,34 +57,135 @@ public class IndicatorRepository {
     ).stream().findFirst();
   }
 
-  public void crunchSma(IndicatorFilter criteria) {
-    this.insertSymbols(criteria.getTableName());
+  public void crunchAggFunction(IndicatorFilter indicatorFilter) {
+    String functionStr;
+    switch (indicatorFilter.getIndicator()) {
+      case AVGO:
+      case AVGH:
+      case AVGL:
+      case AVGC:
+      case AVGV:
+        functionStr = "AVG";
+        break;
+      case MINO:
+      case MINH:
+      case MINL:
+      case MINC:
+      case MINV:
+        functionStr = "MIN";
+        break;
+      case MAXO:
+      case MAXH:
+      case MAXL:
+      case MAXC:
+      case MAXV:
+        functionStr = "MAX";
+        break;
+      default:
+        throw new RuntimeException("Unsupported IndicatorFilter: " + indicatorFilter);
+    }
+
+    this.insertSymbols(indicatorFilter.getTableName());
     namedParameterJdbcTemplate.update(
-        "UPDATE "+ criteria.getTableName() +" src SET value = ind.value \n" +
+        "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
             "FROM (\n" +
-            "\tselect symbol, tick_time, \n" +
-            "\t\tAVG(close_price) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
-            "\t  FROM ticks\n" +
+            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
+            "\tFROM (\n" +
+            "\t\tSELECT symbol, tick_time, " + functionStr + "(close_price) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tFROM ticks\n" +
             "\t ) ind\n" +
+            ") tmp\n" +
+            "  WHERE src.value IS NULL\n" +
+            " AND src.symbol = tmp.symbol\n" +
+            " AND src.tick_time = tmp.tick_time;",
+        new MapSqlParameterSource()
+            .addValue("range", indicatorFilter.getRange() - 1)
+            .addValue("offset", indicatorFilter.getOffset())
+    );
+  }
+
+  public void crunchDv(IndicatorFilter indicatorFilter) {
+    this.insertSymbols(indicatorFilter.getTableName());
+    namedParameterJdbcTemplate.update(
+        "UPDATE " + indicatorFilter.getTableName() + " src SET value = ind.value \n" +
+            "FROM (\n" +
+            "\tSELECT symbol, tick_time, \n" +
+            "\t\tlag(((high_price + low_price)/2) * volume / 1000000, :offset) OVER(ORDER BY symbol,tick_time)\n" +
+            "\t\t    AS value\n" +
+            "\tFROM ticks\n" +
+            ") ind\n" +
             " WHERE src.value IS NULL\n" +
             " AND src.symbol = ind.symbol\n" +
             " AND src.tick_time = ind.tick_time",
-        new MapSqlParameterSource("range", criteria.getRange()-1)
+        new MapSqlParameterSource("offset", indicatorFilter.getOffset())
     );
   }
 
+  public void crunchDvAggFunction(IndicatorFilter indicatorFilter) {
+    String functionStr;
+    switch (indicatorFilter.getIndicator()) {
+      case AVGDV:
+        functionStr = "AVG";
+        break;
+      case MINDV:
+        functionStr = "MIN";
+        break;
+      case MAXDV:
+        functionStr = "MAX";
+        break;
+      default:
+        throw new RuntimeException("Unsupported IndicatorFilter: " + indicatorFilter);
+    }
+
+    this.insertSymbols(indicatorFilter.getTableName());
+    namedParameterJdbcTemplate.update(
+        "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
+            "FROM (\n" +
+            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
+            "\tFROM (\n" +
+            "\t\tSELECT symbol, tick_time, " + functionStr + "(((high_price + low_price)/2) * volume / 1000000) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tFROM ticks\n" +
+            "\t ) ind\n" +
+            ") tmp\n" +
+            "  WHERE src.value IS NULL\n" +
+            " AND src.symbol = tmp.symbol\n" +
+            " AND src.tick_time = tmp.tick_time;",
+        new MapSqlParameterSource()
+            .addValue("range", indicatorFilter.getRange() - 1)
+            .addValue("offset", indicatorFilter.getOffset())
+    );
+  }
 
   private void insertSymbols(String tableName) {
     namedParameterJdbcTemplate.update(
-        "INSERT INTO "+ tableName +" (id, symbol, tick_time, value)\n" +
+        "INSERT INTO " + tableName + " (id, symbol, tick_time, value)\n" +
             "\tSELECT gen_random_uuid(), ticks.symbol, ticks.tick_time, null \n" +
             "\tFROM ticks\n" +
-            "\tLEFT OUTER JOIN "+ tableName +" ON ticks.symbol = "+ tableName +".symbol\n" +
-            "\t  AND ticks.tick_time  = "+ tableName +".tick_time\n" +
-            "\tWHERE "+ tableName +".value IS NULL",
+            "\tLEFT OUTER JOIN " + tableName + " ON ticks.symbol = " + tableName + ".symbol\n" +
+            "\t  AND ticks.tick_time  = " + tableName + ".tick_time\n" +
+            "\tWHERE " + tableName + ".symbol IS NULL \n" +
+            "ON CONFLICT DO NOTHING",
         new MapSqlParameterSource()
     );
-
   }
 
+  public void crunchATR(IndicatorFilter indicatorFilter) {
+    this.insertSymbols(indicatorFilter.getTableName());
+    namedParameterJdbcTemplate.update(
+        "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
+            "FROM (\n" +
+            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
+            "\tFROM (\n" +
+            "\t\tSELECT symbol, tick_time, AVG(tr_pct) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tFROM ticks\n" +
+            "\t ) ind\n" +
+            ") tmp\n" +
+            "  WHERE src.value IS NULL\n" +
+            " AND src.symbol = tmp.symbol\n" +
+            " AND src.tick_time = tmp.tick_time;",
+        new MapSqlParameterSource()
+            .addValue("range", indicatorFilter.getRange() - 1)
+            .addValue("offset", indicatorFilter.getOffset())
+    );
+  }
 }

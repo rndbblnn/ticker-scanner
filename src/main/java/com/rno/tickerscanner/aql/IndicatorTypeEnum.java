@@ -1,4 +1,4 @@
-package com.rno.tickerscanner;
+package com.rno.tickerscanner.aql;
 
 import java.util.Arrays;
 

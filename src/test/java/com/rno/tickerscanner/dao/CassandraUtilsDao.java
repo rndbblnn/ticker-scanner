@@ -1,11 +1,11 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.BaseTest;
+import com.rno.tickerscanner.BaseIntegrationTest;
 import org.assertj.core.util.Streams;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class CassandraUtilsDao extends BaseTest {
+public class CassandraUtilsDao extends BaseIntegrationTest {
 
     @Autowired
     private PatternMatchRepository patternMatchRepository;

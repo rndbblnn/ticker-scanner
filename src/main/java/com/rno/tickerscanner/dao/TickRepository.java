@@ -28,37 +28,35 @@ public interface TickRepository extends CrudRepository<TickEntity, Long> {
   @Query(nativeQuery = true, value =
       "UPDATE ticks t SET tr = sub.tr\n" +
           "FROM (\n" +
-          "\tSELECT symbol, tick_time, GREATEST(high_price-low_price,high_price-prev_close,low_price-prev_close) AS tr\n" +
-          "\tFROM (\n" +
-          "\t\tSELECT *,\n" +
-          "\t\t\tCASE\n" +
-          "\t\t\t    WHEN high_price > low_price THEN prev_close\n" +
-          "\t\t\t    ELSE low_price\n" +
-          "\t\t\t  END \n" +
-          "\t\t\t  AS hl,\t \n" +
-          "\t\t\tCASE\n" +
-          "\t\t\t    WHEN high_price > prev_close THEN high_price\n" +
-          "\t\t\t    ELSE prev_close\n" +
-          "\t\t\t  END \n" +
-          "\t\t\t  AS hc,\n" +
-          "\t\t\tCASE\n" +
-          "\t\t\t    WHEN low_price > prev_close THEN prev_close\n" +
-          "\t\t\t    ELSE low_price\n" +
-          "\t\t\t  END \n" +
-          "\t\t\t  AS lc\t  \n" +
-          "\t\tFROM (\n" +
-          "\t\t\tSELECT symbol, tick_time, open_price, high_price, low_price, close_price, prev_low, prev_close FROM (\n" +
-          "\t\t\t\tselect symbol, tick_time,  open_price, high_price, low_price, close_price,\n" +
-          "\t\t\t\t\t\tlag(close_price, 1) OVER(ORDER BY symbol,tick_time\n" +
-          "\t\t\t\t\t\t      ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)\n" +
-          "\t\t\t\t\t\t    AS prev_close,\n" +
-          "\t\t\t\t\t\tlag(low_price, 1) OVER(ORDER BY symbol,tick_time\n" +
-          "\t\t\t\t\t\t      ROWS BETWEEN 1 PRECEDING AND CURRENT ROW)\n" +
-          "\t\t\t\t\t\t    AS prev_low\n" +
-          "\t\t\t\tFROM ticks\n" +
-          "\t\t\t) subq111\n" +
-          "\t\t) subq11\n" +
-          "\t) subq1 \n" +
+          "  SELECT symbol, tick_time, GREATEST(high_price-low_price,high_price-prev_close,low_price-prev_close) AS tr\n" +
+          "  FROM (\n" +
+          "    SELECT *,\n" +
+          "      CASE\n" +
+          "          WHEN high_price > low_price THEN prev_close\n" +
+          "          ELSE low_price\n" +
+          "        END \n" +
+          "        AS hl,   \n" +
+          "      CASE\n" +
+          "          WHEN high_price > prev_close THEN high_price\n" +
+          "          ELSE prev_close\n" +
+          "        END \n" +
+          "        AS hc,\n" +
+          "      CASE\n" +
+          "          WHEN low_price > prev_close THEN prev_close\n" +
+          "          ELSE low_price\n" +
+          "        END \n" +
+          "        AS lc    \n" +
+          "    FROM (\n" +
+          "      SELECT symbol, tick_time, open_price, high_price, low_price, close_price, prev_low, prev_close FROM (\n" +
+          "        select symbol, tick_time,  open_price, high_price, low_price, close_price,\n" +
+          "            lag(close_price, 1) OVER(ORDER BY symbol,tick_time)\n" +
+          "                AS prev_close,\n" +
+          "            lag(low_price, 1) OVER(ORDER BY symbol,tick_time)\n" +
+          "                AS prev_low\n" +
+          "        FROM ticks\n" +
+          "      ) subq111\n" +
+          "    ) subq11\n" +
+          "  ) subq1 \n" +
           ") sub\n" +
           "WHERE t.tr IS NULL \n" +
           "AND t.symbol = sub.symbol\n" +

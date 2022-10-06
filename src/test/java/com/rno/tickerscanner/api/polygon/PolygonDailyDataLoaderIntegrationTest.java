@@ -1,9 +1,9 @@
 package com.rno.tickerscanner.api.polygon;
 
-import com.rno.tickerscanner.BaseTest;
+import com.rno.tickerscanner.BaseIntegrationTest;
 import org.springframework.beans.factory.annotation.Autowired;
 
-public class PolygonDailyDataLoaderTest extends BaseTest {
+public class PolygonDailyDataLoaderIntegrationTest extends BaseIntegrationTest {
 
     @Autowired
     private PolygonDailyDataLoader polygonDailyDataLoader;

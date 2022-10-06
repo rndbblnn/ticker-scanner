@@ -1,14 +1,24 @@
-package com.rno.tickerscanner;
+package com.rno.tickerscanner.aql;
+
+import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import lombok.Data;
-
 @Data
 public class CriteriaGroup {
     
-    private List<Criteria> criterias = new ArrayList<>();
+    private List<Object> criterias = new ArrayList<>();
+
+    public CriteriaGroup add(Criteria criteria) {
+        this.criterias.add(criteria);
+        return this;
+    }
+
+    public CriteriaGroup add(AndOrEnum andOr) {
+        this.criterias.add(andOr);
+        return this;
+    }
 
     // public CriteriaGroup addFilter(Filter filter) {
 

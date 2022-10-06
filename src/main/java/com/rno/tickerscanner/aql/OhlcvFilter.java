@@ -1,4 +1,4 @@
-package com.rno.tickerscanner;
+package com.rno.tickerscanner.aql;
 
 public class OhlcvFilter implements Filter {
 
