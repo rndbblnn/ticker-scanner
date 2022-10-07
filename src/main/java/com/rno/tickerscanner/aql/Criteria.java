@@ -1,14 +1,18 @@
 package com.rno.tickerscanner.aql;
 
-import lombok.AllArgsConstructor;
+import com.rno.tickerscanner.dto.PatternMatchDto;
 import lombok.Data;
 
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+
 @Data
-@AllArgsConstructor
 public class Criteria {
 
     private Filter left;
     private OperatorEnum operator;
     private Filter right;
-    
+
+    private transient CompletableFuture<List<PatternMatchDto>> results;
+
 }

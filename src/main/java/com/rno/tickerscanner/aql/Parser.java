@@ -132,7 +132,10 @@ public class Parser {
           })
           .collect(Collectors.toList());
 
-      Criteria criteria = new Criteria(filters.get(0), OperatorEnum.fromLine(line), filters.get(1));
+      Criteria criteria = new Criteria()
+          .setLeft(filters.get(0))
+          .setOperator(OperatorEnum.fromLine(line))
+          .setRight(filters.get(1));
 
       System.out.println(criteria);
 

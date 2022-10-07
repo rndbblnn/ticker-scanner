@@ -17,7 +17,33 @@ public class IndicatorFilter implements Filter {
   private int offset;
 
   public String getTableName() {
-    return "ind_" + timeframe.toTimeframeStr() + "_" + indicator.name().toLowerCase(Locale.ROOT) + range;
+    switch (indicator) {
+      case O:
+      case H:
+      case L:
+      case C:
+      case V:
+//      case DV:
+        return "ticks";
+      default:
+        return "ind_" + timeframe.toTimeframeStr() + "_" + indicator.name().toLowerCase(Locale.ROOT) + range;
+    }
   }
 
+  public String getColumnName() {
+    switch (indicator) {
+      case O:
+        return "open_price";
+      case H:
+        return "high_price";
+      case L:
+        return "low_price";
+      case C:
+        return "close_price";
+      case V:
+        return "volume";
+      default:
+        return "value";
+    }
+  }
 }

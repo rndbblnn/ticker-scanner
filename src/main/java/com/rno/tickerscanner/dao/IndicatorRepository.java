@@ -135,7 +135,7 @@ public class IndicatorRepository {
     namedParameterJdbcTemplate.update(
         "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
             "FROM (\n" +
-            "\t\tSELECT symbol, tick_time, " + aggFunctionFull + " OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tSELECT symbol, tick_time, " + aggFunctionFull + " OVER(ORDER BY symbol,tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
             "\t\tFROM ticks\n" +
             ") tmp\n" +
             "  WHERE src.value IS NULL\n" +

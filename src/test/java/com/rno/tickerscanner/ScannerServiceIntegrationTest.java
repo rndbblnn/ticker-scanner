@@ -1,10 +1,13 @@
 package com.rno.tickerscanner;
 
-import com.rno.tickerscanner.dao.IndicatorRepository;
+import lombok.SneakyThrows;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
 public class ScannerServiceIntegrationTest extends BaseIntegrationTest {
+
+  public static final String SCAN_TEST_SIMPLE_QUERY =
+      "[d]C.1 > [d]AVGC10.0";
 
   public static final String SCAN_TEST_QUERY =
       "[d]ATR20.0 > 5\n" +
@@ -17,21 +20,15 @@ public class ScannerServiceIntegrationTest extends BaseIntegrationTest {
           ")\n";
 
   @Autowired
-  private ScannerService scannerService;
-
-  @Autowired
-  private IndicatorRepository indicatorRepository;
+  private QueryService queryService;
 
   @Test
+  @SneakyThrows
   public void scanTest() {
 
-    scannerService.scan(SCAN_TEST_QUERY);
+//    queryService.search(SCAN_TEST_SIMPLE_QUERY);
+    queryService.search(SCAN_TEST_QUERY);
 
-  }
-
-  @Test
-  public void dropAllIndicatorTables() {
-    indicatorRepository.dropAllIndicatorTables();
   }
 
 }

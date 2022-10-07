@@ -23,4 +23,21 @@ public enum OperatorEnum {
     throw new RuntimeException("no operator? [line: " + line + "]");
   }
 
+  public String toSign() {
+    switch (this) {
+      case EQUAL:
+        return "=";
+      case LESSER:
+        return "<";
+      case LESSER_OR_EQUAL:
+        return "<=";
+      case GREATER:
+        return ">";
+      case GREATER_OR_EQUAL:
+        return ">=";
+    }
+    throw new RuntimeException("Unsupported operator: " + this);
+
+  }
+
 }

@@ -17,15 +17,18 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.scheduling.annotation.AsyncConfigurer;
 import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
-public class TickerScannerConfig implements AsyncConfigurer {
+public class TickerScannerConfig implements AsyncConfigurer, WebMvcConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TickerScannerConfig.class);
 
@@ -35,6 +38,17 @@ public class TickerScannerConfig implements AsyncConfigurer {
     @Bean
     public NamedParameterJdbcTemplate namedParameterJdbcTemplate() {
         return new NamedParameterJdbcTemplate(dataSource);
+    }
+
+    @Bean
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(20);
+        executor.setMaxPoolSize(50);
+        executor.setQueueCapacity(500);
+        executor.setThreadNamePrefix("TickerScannerPool-");
+        executor.initialize();
+        return executor;
     }
 
     @Bean
