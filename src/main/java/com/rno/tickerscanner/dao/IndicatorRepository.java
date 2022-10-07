@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
+import java.util.Locale;
 import java.util.Optional;
 
 @Repository
@@ -26,6 +27,21 @@ public class IndicatorRepository {
             "SELECT to_regclass('public." + tableName + "')) "
         )
         .getSingleResult() != null;
+  }
+
+  @Transactional
+  public void dropAllIndicatorTables() {
+    namedParameterJdbcTemplate.query(
+            "SELECT table_name FROM information_schema.tables \n" +
+                "WHERE table_catalog = 'stonks'\n" +
+                "AND table_name LIKE 'ind_%';",
+            new MapSqlParameterSource(),
+            (rs, rowNum) -> rs.getString("table_name")
+        )
+        .stream()
+        .forEach(tableName -> {
+          entityManager.createNativeQuery("DROP TABLE " + tableName).executeUpdate();
+        });
   }
 
   @Transactional
@@ -58,49 +74,14 @@ public class IndicatorRepository {
   }
 
   public void crunchAggFunction(IndicatorFilter indicatorFilter) {
-    String functionStr;
-    switch (indicatorFilter.getIndicator()) {
-      case AVGO:
-      case AVGH:
-      case AVGL:
-      case AVGC:
-      case AVGV:
-        functionStr = "AVG";
-        break;
-      case MINO:
-      case MINH:
-      case MINL:
-      case MINC:
-      case MINV:
-        functionStr = "MIN";
-        break;
-      case MAXO:
-      case MAXH:
-      case MAXL:
-      case MAXC:
-      case MAXV:
-        functionStr = "MAX";
-        break;
-      default:
-        throw new RuntimeException("Unsupported IndicatorFilter: " + indicatorFilter);
-    }
-
     this.insertSymbols(indicatorFilter.getTableName());
-    namedParameterJdbcTemplate.update(
-        "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
-            "FROM (\n" +
-            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
-            "\tFROM (\n" +
-            "\t\tSELECT symbol, tick_time, " + functionStr + "(close_price) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
-            "\t\tFROM ticks\n" +
-            "\t ) ind\n" +
-            ") tmp\n" +
-            "  WHERE src.value IS NULL\n" +
-            " AND src.symbol = tmp.symbol\n" +
-            " AND src.tick_time = tmp.tick_time;",
-        new MapSqlParameterSource()
-            .addValue("range", indicatorFilter.getRange() - 1)
-            .addValue("offset", indicatorFilter.getOffset())
+
+    this.crunchTicksColumn(
+        indicatorFilter,
+        toAggFunctionFull(
+            toAggFunctionName(indicatorFilter),
+            toOhlcvColumnName(Character.toString(indicatorFilter.getIndicator().name().charAt(3)))
+        )
     );
   }
 
@@ -110,49 +91,23 @@ public class IndicatorRepository {
         "UPDATE " + indicatorFilter.getTableName() + " src SET value = ind.value \n" +
             "FROM (\n" +
             "\tSELECT symbol, tick_time, \n" +
-            "\t\tlag(((high_price + low_price)/2) * volume / 1000000, :offset) OVER(ORDER BY symbol,tick_time)\n" +
-            "\t\t    AS value\n" +
+            "\t\t((high_price + low_price)/2) * volume / 1000000 AS value\n" +
             "\tFROM ticks\n" +
             ") ind\n" +
             " WHERE src.value IS NULL\n" +
             " AND src.symbol = ind.symbol\n" +
             " AND src.tick_time = ind.tick_time",
-        new MapSqlParameterSource("offset", indicatorFilter.getOffset())
+        new MapSqlParameterSource()
     );
   }
 
   public void crunchDvAggFunction(IndicatorFilter indicatorFilter) {
-    String functionStr;
-    switch (indicatorFilter.getIndicator()) {
-      case AVGDV:
-        functionStr = "AVG";
-        break;
-      case MINDV:
-        functionStr = "MIN";
-        break;
-      case MAXDV:
-        functionStr = "MAX";
-        break;
-      default:
-        throw new RuntimeException("Unsupported IndicatorFilter: " + indicatorFilter);
-    }
-
     this.insertSymbols(indicatorFilter.getTableName());
-    namedParameterJdbcTemplate.update(
-        "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
-            "FROM (\n" +
-            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
-            "\tFROM (\n" +
-            "\t\tSELECT symbol, tick_time, " + functionStr + "(((high_price + low_price)/2) * volume / 1000000) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
-            "\t\tFROM ticks\n" +
-            "\t ) ind\n" +
-            ") tmp\n" +
-            "  WHERE src.value IS NULL\n" +
-            " AND src.symbol = tmp.symbol\n" +
-            " AND src.tick_time = tmp.tick_time;",
-        new MapSqlParameterSource()
-            .addValue("range", indicatorFilter.getRange() - 1)
-            .addValue("offset", indicatorFilter.getOffset())
+
+    this.crunchTicksColumn(indicatorFilter,
+        toAggFunctionFull(
+            toAggFunctionName(indicatorFilter),
+            "((high_price + low_price)/2) * volume / 1000000")
     );
   }
 
@@ -171,21 +126,74 @@ public class IndicatorRepository {
 
   public void crunchATR(IndicatorFilter indicatorFilter) {
     this.insertSymbols(indicatorFilter.getTableName());
+    this.crunchTicksColumn(indicatorFilter,
+        toAggFunctionFull("AVG", "tr_pct")
+    );
+  }
+
+  private void crunchTicksColumn(IndicatorFilter indicatorFilter, String aggFunctionFull) {
     namedParameterJdbcTemplate.update(
         "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
             "FROM (\n" +
-            "\tSELECT symbol, tick_time, LAG(value, :offset) OVER (ORDER BY symbol,tick_time) AS value \n" +
-            "\tFROM (\n" +
-            "\t\tSELECT symbol, tick_time, AVG(tr_pct) OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tSELECT symbol, tick_time, " + aggFunctionFull + " OVER(ORDER BY tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
             "\t\tFROM ticks\n" +
-            "\t ) ind\n" +
             ") tmp\n" +
             "  WHERE src.value IS NULL\n" +
             " AND src.symbol = tmp.symbol\n" +
             " AND src.tick_time = tmp.tick_time;",
         new MapSqlParameterSource()
             .addValue("range", indicatorFilter.getRange() - 1)
-            .addValue("offset", indicatorFilter.getOffset())
     );
+  }
+
+  private static final String toAggFunctionFull(String aggFunctionName, String aggFunctionParameter) {
+    return aggFunctionName + "(" + aggFunctionParameter + ")";
+  }
+
+  private static final String toAggFunctionName(IndicatorFilter indicatorFilter) {
+    switch (indicatorFilter.getIndicator()) {
+      case AVGO:
+      case AVGH:
+      case AVGL:
+      case AVGC:
+      case AVGV:
+      case MINO:
+      case MINH:
+      case MINL:
+      case MINC:
+      case MINV:
+      case MAXO:
+      case MAXH:
+      case MAXL:
+      case MAXC:
+      case MAXV:
+
+      case AVGDV:
+      case MINDV:
+      case MAXDV:
+        break;
+      default:
+        throw new RuntimeException("Unsupported IndicatorFilter: " + indicatorFilter);
+    }
+
+    return indicatorFilter.getIndicator().name().substring(0, 3);
+  }
+
+
+  private static final String toOhlcvColumnName(String ohlcv) {
+    switch (ohlcv.toUpperCase(Locale.ROOT)) {
+      case "O":
+        return "open_price";
+      case "H":
+        return "high_price";
+      case "L":
+        return "low_price";
+      case "C":
+        return "close_price";
+      case "V":
+        return "volume";
+      default:
+        throw new RuntimeException("Unsupported ohlcv: " + ohlcv);
+    }
   }
 }

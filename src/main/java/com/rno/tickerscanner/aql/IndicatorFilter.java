@@ -17,7 +17,7 @@ public class IndicatorFilter implements Filter {
   private int offset;
 
   public String getTableName() {
-    return "ind_" + timeframe.toTimeframeStr() + "_" + indicator.name().toLowerCase(Locale.ROOT) + range + "_" + offset;
+    return "ind_" + timeframe.toTimeframeStr() + "_" + indicator.name().toLowerCase(Locale.ROOT) + range;
   }
 
 }

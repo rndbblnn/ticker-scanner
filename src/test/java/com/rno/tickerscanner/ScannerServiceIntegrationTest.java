@@ -1,5 +1,6 @@
 package com.rno.tickerscanner;
 
+import com.rno.tickerscanner.dao.IndicatorRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -18,11 +19,19 @@ public class ScannerServiceIntegrationTest extends BaseIntegrationTest {
   @Autowired
   private ScannerService scannerService;
 
+  @Autowired
+  private IndicatorRepository indicatorRepository;
+
   @Test
   public void scanTest() {
 
     scannerService.scan(SCAN_TEST_QUERY);
 
+  }
+
+  @Test
+  public void dropAllIndicatorTables() {
+    indicatorRepository.dropAllIndicatorTables();
   }
 
 }
