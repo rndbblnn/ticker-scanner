@@ -1,4 +1,4 @@
-package com.rno.tickerscanner.aql;
+package com.rno.tickerscanner.aql.filter;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

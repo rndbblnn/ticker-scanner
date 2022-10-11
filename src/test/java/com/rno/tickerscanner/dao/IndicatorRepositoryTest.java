@@ -2,7 +2,7 @@ package com.rno.tickerscanner.dao;
 
 import com.rno.tickerscanner.BaseIntegrationTest;
 import com.rno.tickerscanner.aql.IndicatorEnum;
-import com.rno.tickerscanner.aql.IndicatorFilter;
+import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

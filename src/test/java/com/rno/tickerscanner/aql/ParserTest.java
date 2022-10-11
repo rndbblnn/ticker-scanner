@@ -1,11 +1,17 @@
 package com.rno.tickerscanner.aql;
 
+import com.rno.tickerscanner.aql.filter.Filter;
+import com.rno.tickerscanner.aql.filter.IndicatorFilter;
+import com.rno.tickerscanner.aql.filter.NumberFilter;
 import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
 public class ParserTest {
+
+  public static final String ARITHMETIC_TEST_QUERY =
+      "[d]C.0 / [d]C.1 >= 1.1";
 
   public static final String TEST_QUERY =
       "[d]C.1 > [d]AVGC10.2 \n" +
@@ -133,6 +139,15 @@ public class ParserTest {
     Assert.assertTrue(rightFilter instanceof NumberFilter);
     Assert.assertEquals(3.0d, ((NumberFilter) rightFilter).getNumber(), 0d);
 
+  }
+
+
+  @Test
+  public void testParse_arithmeticCriteria() {
+    List<Object> query =
+        Parser.builder()
+            .query(ARITHMETIC_TEST_QUERY)
+            .build();
   }
 
 

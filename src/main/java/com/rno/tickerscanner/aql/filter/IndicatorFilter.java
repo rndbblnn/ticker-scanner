@@ -1,5 +1,7 @@
-package com.rno.tickerscanner.aql;
+package com.rno.tickerscanner.aql.filter;
 
+import com.rno.tickerscanner.aql.IndicatorEnum;
+import com.rno.tickerscanner.aql.TimeframeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

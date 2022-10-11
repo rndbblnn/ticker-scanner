@@ -1,10 +1,16 @@
 package com.rno.tickerscanner.aql;
 
+import com.rno.tickerscanner.aql.filter.ArithmeticFilter;
+import com.rno.tickerscanner.aql.filter.ArithmeticOperator;
+import com.rno.tickerscanner.aql.filter.Filter;
+import com.rno.tickerscanner.aql.filter.IndicatorFilter;
+import com.rno.tickerscanner.aql.filter.NumberFilter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 // @Builder
@@ -12,6 +18,7 @@ import java.util.stream.Collectors;
 public class Parser {
 
   private static final String OPERATOR_PATTERN_STR = "(\\>\\=|\\<\\=|\\=|\\<|\\>)";
+  private static final String ARITHMETIC_OPERATOR_PATTERN_STR = "(\\*|\\/|\\*-\\*+)";
   private static final String TIMEFRAME_PATTERN_STR = "(\\[(3m|5m|15m|30m|1h|4h|d|m)\\])";
   private static final String OHLCV_PATTERN_STR = TIMEFRAME_PATTERN_STR + "[O,H,L,C,V]\\.[0-9]{1,4}+$";
   private static final String DV_PATTERN_STR = TIMEFRAME_PATTERN_STR + "DV\\.[0-9]{1,4}+$";
@@ -105,30 +112,22 @@ public class Parser {
     line = line.replaceAll("\\s", "");
     System.out.println("line: " + line);
 
-    List<Filter> filters = 
+    List<Filter> filters =
       Arrays.stream(line.split(OPERATOR_PATTERN_STR))
           .map(filterStr -> {
             System.out.println("\tfilterStr: " + filterStr);
-            if (filterStr.matches("[0-9]")) {
-              return new NumberFilter(Double.valueOf(filterStr));
+            if (filterStr.matches(".*" + ARITHMETIC_OPERATOR_PATTERN_STR + ".*")) {
+              Optional<ArithmeticOperator> arithmeticOperator = ArithmeticOperator.findOperator(filterStr);
+              String leftFilterStr = filterStr.substring(0, filterStr.indexOf(arithmeticOperator.get().getSign()));
+              String rightFilterStr = filterStr.substring(filterStr.indexOf(arithmeticOperator.get().getSign())+1);
+              return new ArithmeticFilter()
+                  .setLeft(getFilter(leftFilterStr))
+                  .setArithmeticOperator(arithmeticOperator.get())
+                  .setRight(getFilter(rightFilterStr));
             }
-            if (filterStr.matches(OHLCV_PATTERN_STR)) {
-              return new IndicatorFilter()
-                .setIndicator(IndicatorEnum.valueOf(Character.toString(filterStr.charAt(filterStr.indexOf("]") + 1))))
-                .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+            else {
+              return getFilter(filterStr);
             }
-            if (filterStr.matches(FUNCTION_PATTERN_STR)) {
-              return new IndicatorFilter()
-                .setIndicator(IndicatorEnum.fromLine(filterStr))
-                .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())))
-                .setRange(Integer.valueOf(filterStr.substring(0, filterStr.indexOf(".")).replaceAll("[^0-9{1,4}]", "")));
-            }
-            if (filterStr.matches(DV_PATTERN_STR)) {
-              return new IndicatorFilter()
-                .setIndicator(IndicatorEnum.fromLine(filterStr))
-                .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
-            }
-            return null;
           })
           .collect(Collectors.toList());
 
@@ -140,5 +139,30 @@ public class Parser {
       System.out.println(criteria);
 
       return criteria;
+  }
+
+  private static Filter getFilter(String filterStr) {
+    if (filterStr.matches("(\\d+)?\\.(\\d+)?")) {
+      return new NumberFilter(Double.valueOf(filterStr));
+    }
+    if (filterStr.matches(OHLCV_PATTERN_STR)) {
+      return new IndicatorFilter()
+          .setIndicator(IndicatorEnum.valueOf(Character.toString(filterStr.charAt(filterStr.indexOf("]") + 1))))
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+    }
+    if (filterStr.matches(FUNCTION_PATTERN_STR)) {
+      return new IndicatorFilter()
+          .setIndicator(IndicatorEnum.fromLine(filterStr))
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())))
+          .setRange(Integer.valueOf(filterStr.substring(0, filterStr.indexOf(".")).replaceAll("[^0-9{1,4}]", "")));
+    }
+    if (filterStr.matches(DV_PATTERN_STR)) {
+      return new IndicatorFilter()
+          .setIndicator(IndicatorEnum.fromLine(filterStr))
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+    }
+
+    throw new RuntimeException("Unmatched filter. filterStr: " + filterStr);
+
   }
 }

@@ -1,5 +1,6 @@
 package com.rno.tickerscanner.aql;
 
+import com.rno.tickerscanner.aql.filter.Filter;
 import com.rno.tickerscanner.dto.PatternMatchDto;
 import lombok.Data;
 

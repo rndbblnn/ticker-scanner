@@ -7,8 +7,14 @@ import java.util.List;
 
 @Data
 public class CriteriaGroup {
+
+    private String name;
     
     private List<Object> criterias = new ArrayList<>();
+
+    public String getTableName() {
+        return "tmp_" + this.getName();
+    }
 
     public CriteriaGroup add(Criteria criteria) {
         this.criterias.add(criteria);

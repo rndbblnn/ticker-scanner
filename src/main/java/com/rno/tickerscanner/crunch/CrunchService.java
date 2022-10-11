@@ -2,8 +2,8 @@ package com.rno.tickerscanner.crunch;
 
 import com.google.common.base.Stopwatch;
 import com.rno.tickerscanner.aql.CriteriaGroup;
-import com.rno.tickerscanner.aql.Filter;
-import com.rno.tickerscanner.aql.IndicatorFilter;
+import com.rno.tickerscanner.aql.filter.Filter;
+import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.dao.IndicatorRepository;
 import com.rno.tickerscanner.dao.TickRepository;
 import com.rno.tickerscanner.dao.entity.TickEntity;
@@ -11,12 +11,13 @@ import com.rno.tickerscanner.dto.PatternMatchDto;
 import com.rno.tickerscanner.utils.DateUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Component
 @AllArgsConstructor
@@ -41,46 +42,40 @@ public class CrunchService {
     log.info("updating TR % [done: {}]", sw);
   }
 
-  public void crunchAll(Set<Filter> filterSet) {
+  @Async
+  public CompletableFuture<Void> crunch(Filter filter) {
+    Stopwatch sw = Stopwatch.createStarted();
+    if (filter instanceof IndicatorFilter) {
+      IndicatorFilter indicatorFilter = (IndicatorFilter) filter;
 
-    log.info("crunchAll enter [filterSet.size: {}]", filterSet.size());
+      if (!indicatorFilter.getIndicator().isCrunchRequired()) {
+        return CompletableFuture.completedFuture(null);
+      }
 
-    filterSet.stream()
-        .forEach(filter -> {
-          Stopwatch sw = Stopwatch.createStarted();
-          if (filter instanceof IndicatorFilter) {
-            IndicatorFilter indicatorFilter = (IndicatorFilter) filter;
+      log.info("\tcrunching {}", indicatorFilter);
 
-            if (!indicatorFilter.getIndicator().isCrunchRequired()) {
-              return;
-            }
+      indicatorRepository.createIndTable(indicatorFilter.getTableName());
+      if (indicatorFilter.getIndicator().isAggFunction()) {
+        indicatorRepository.crunchAggFunction(indicatorFilter);
+      } else {
+        switch (indicatorFilter.getIndicator()) {
+          case DV:
+            indicatorRepository.crunchDv(indicatorFilter);
+            break;
+          case AVGDV:
+          case MINDV:
+          case MAXDV:
+            indicatorRepository.crunchDvAggFunction(indicatorFilter);
+            break;
+          case ATR:
+            indicatorRepository.crunchATR(indicatorFilter);
+            break;
+        }
+      }
+    }
+    log.info("\tcrunching done [elapsed: {}, filter:{}]", sw, filter);
 
-            log.info("" +
-                "\tcrunching {}", indicatorFilter);
-
-            indicatorRepository.createIndTable(indicatorFilter.getTableName());
-            if (indicatorFilter.getIndicator().isAggFunction()) {
-              indicatorRepository.crunchAggFunction(indicatorFilter);
-            }
-
-            switch (indicatorFilter.getIndicator()) {
-              case DV:
-                indicatorRepository.crunchDv(indicatorFilter);
-                break;
-              case AVGDV:
-              case MINDV:
-              case MAXDV:
-                indicatorRepository.crunchDvAggFunction(indicatorFilter);
-                break;
-              case ATR:
-                indicatorRepository.crunchATR(indicatorFilter);
-                break;
-            }
-
-          }
-          log.info("\tcrunching done [elapsed: {}, filter:{}]", sw, filter);
-        });
-
+    return CompletableFuture.completedFuture(null);
   }
 
   public List<PatternMatchDto> findPatternMatches(CriteriaGroup criteriaGroup) {

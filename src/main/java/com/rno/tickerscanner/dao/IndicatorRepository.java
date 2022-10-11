@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.aql.IndicatorFilter;
+import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.dao.entity.IndicatorEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
@@ -16,11 +16,20 @@ import java.util.Optional;
 @Repository
 public class IndicatorRepository {
 
+  public static final String CREATE_TABLE_COLUMNS =
+      "    id varchar(36) NOT NULL DEFAULT gen_random_uuid()," +
+      "    symbol varchar(12) NOT NULL," +
+      "    tick_time timestamp NOT NULL," +
+      "    value DOUBLE PRECISION NULL," +
+      "    CONSTRAINT %s_pk PRIMARY KEY (id)," +
+      "    CONSTRAINT %s_uk UNIQUE (symbol, tick_time)";
+
   @PersistenceContext
   private EntityManager entityManager;
 
   @Autowired
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
 
   public boolean existsByTableName(String tableName) {
     return entityManager.createNativeQuery(
@@ -47,14 +56,8 @@ public class IndicatorRepository {
   @Transactional
   public void createIndTable(String tableName) {
     entityManager.createNativeQuery(
-            "CREATE TABLE IF NOT EXISTS " + tableName + " (" +
-                "    id varchar(36) NOT NULL," +
-                "    symbol varchar(12) NOT NULL," +
-                "    tick_time timestamp NOT NULL," +
-                "    value DOUBLE PRECISION NULL," +
-                "    CONSTRAINT " + tableName + "_pk PRIMARY KEY (id)," +
-                "    CONSTRAINT " + tableName + "_uk UNIQUE (symbol, tick_time)" +
-                ")"
+            "CREATE TABLE IF NOT EXISTS " + tableName +
+                " (" + String.format(CREATE_TABLE_COLUMNS, tableName, tableName)  +")"
         )
         .executeUpdate();
   }

@@ -22,10 +22,10 @@ public class QueryController {
 
   @GetMapping("/search")
   @SneakyThrows
-  public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String searchQuery) {
+  public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q) {
 
     return APIResponse.<List<PatternMatchDto>>builder()
-        .payload(queryService.search(searchQuery))
+        .payload(queryService.search(q))
         .build();
 
   }
