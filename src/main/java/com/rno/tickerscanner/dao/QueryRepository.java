@@ -1,5 +1,6 @@
 package com.rno.tickerscanner.dao;
 
+import com.rno.tickerscanner.aql.Criteria;
 import com.rno.tickerscanner.aql.Filter;
 import com.rno.tickerscanner.aql.IndicatorFilter;
 import com.rno.tickerscanner.aql.NumberFilter;
@@ -25,6 +26,27 @@ public class QueryRepository {
 
   @Autowired
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
+
+  @Async
+  public CompletableFuture<Integer> createTemporaryTable(Criteria criteria) throws InterruptedException {
+
+
+      int updated =
+          namedParameterJdbcTemplate.update(
+            "SELECT left1.symbol, left1.tick_time FROM (\n" +
+                getFilterQueryStr(criteria.getLeft()) +
+                ") left1\n" +
+                "JOIN (\n" +
+                getFilterQueryStr(criteria.getRight()) +
+                ") right1\n" +
+                "USING (symbol, tick_time)\n" +
+                "WHERE left1.lag_value " + criteria.getOperator().toSign() + " right1.lag_value",
+            new MapSqlParameterSource()
+        );
+
+    return CompletableFuture.completedFuture(updated);
+
+  }
 
   @Async
   public CompletableFuture<List<PatternMatchDto>> findPatternMatches(

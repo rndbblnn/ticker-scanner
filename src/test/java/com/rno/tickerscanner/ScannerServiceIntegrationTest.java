@@ -26,8 +26,8 @@ public class ScannerServiceIntegrationTest extends BaseIntegrationTest {
   @SneakyThrows
   public void scanTest() {
 
-//    queryService.search(SCAN_TEST_SIMPLE_QUERY);
-    queryService.search(SCAN_TEST_QUERY);
+    queryService.search(SCAN_TEST_SIMPLE_QUERY);
+//    queryService.search(SCAN_TEST_QUERY);
 
   }
 
