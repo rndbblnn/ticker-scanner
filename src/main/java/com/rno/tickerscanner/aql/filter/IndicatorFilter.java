@@ -4,6 +4,7 @@ import com.rno.tickerscanner.aql.IndicatorEnum;
 import com.rno.tickerscanner.aql.TimeframeEnum;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.util.Locale;
@@ -11,11 +12,13 @@ import java.util.Locale;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode
 public class IndicatorFilter implements Filter {
 
   private TimeframeEnum timeframe = TimeframeEnum.tf_d;
   private IndicatorEnum indicator;
   private int range;
+  @EqualsAndHashCode.Exclude
   private int offset;
 
   public String getTableName() {
@@ -26,7 +29,7 @@ public class IndicatorFilter implements Filter {
       case C:
       case V:
 //      case DV:
-        return "ticks";
+        return "candle_" + timeframe.toTimeframeStr();
       default:
         return "ind_" + timeframe.toTimeframeStr() + "_" + indicator.name().toLowerCase(Locale.ROOT) + range;
     }

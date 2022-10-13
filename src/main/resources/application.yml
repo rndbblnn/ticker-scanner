@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/stonks
     username: postgres
-    password: password
+    password: postgre$$$
   jpa:
     generate-ddl: 'false'
     database: POSTGRESQL
@@ -48,3 +48,4 @@ logging:
     org.thymeleaf: INFO
     com.datastax.oss: INFO
     org.apache.commons.beanutils: INFO
+    org.springframework.cache: TRACE

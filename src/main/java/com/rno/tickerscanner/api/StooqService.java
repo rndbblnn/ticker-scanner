@@ -2,9 +2,9 @@ package com.rno.tickerscanner.api;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import com.rno.tickerscanner.dao.CandleDailyRepository;
 import com.rno.tickerscanner.dao.PatternMatchRepository;
-import com.rno.tickerscanner.dao.TickRepository;
-import com.rno.tickerscanner.dao.entity.TickEntity;
+import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
 import lombok.SneakyThrows;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -26,7 +26,7 @@ public class StooqService {
     private static final Logger LOGGER = LoggerFactory.getLogger(StooqService.class);
 
     @Autowired
-    private TickRepository tickRepository;
+    private CandleDailyRepository candleDailyRepository;
 
     @Autowired
     private PatternMatchRepository patternMatchRepository;
@@ -82,8 +82,8 @@ public class StooqService {
             long dayCounter = 0;
 
             while ((line = csvReader.readNext()) != null) {
-                TickEntity tickEntity =
-                        new TickEntity()
+                CandleDailyEntity candleDailyEntity =
+                    (CandleDailyEntity) new CandleDailyEntity()
                                 .setSymbol(line[0].replaceAll("\\.US", ""))
                                 .setTickTime(LocalDateTime.of(
                                         Integer.valueOf(line[2].substring(0, 4)),
@@ -105,14 +105,13 @@ public class StooqService {
 //                    return;
 //                }
 
-                if (tickEntity.getTickTime().isBefore(LocalDateTime.now().minus(6, ChronoUnit.YEARS))) {
+                if (candleDailyEntity.getTickTime().isBefore(LocalDateTime.now().minus(6, ChronoUnit.YEARS))) {
 //                    LOGGER.info("\t\t\t Skipping old shit {}", tickerOhlcEntity.getTime());
                 } else {
-                    Optional<TickEntity> tickerOhlcEntityOptional =
-                            tickRepository.findTickEntityBySymbolAndTimeframeAndTickTime(
-                                    tickEntity.getSymbol(),
-                                    "D",
-                                    tickEntity.getTickTime()
+                    Optional<CandleDailyEntity> tickerOhlcEntityOptional =
+                            candleDailyRepository.findBySymbolAndTickTime(
+                                    candleDailyEntity.getSymbol(),
+                                    candleDailyEntity.getTickTime()
                             );
 
                     if (tickerOhlcEntityOptional.isPresent()) {
@@ -148,7 +147,7 @@ public class StooqService {
                     else {
 //                        LOGGER.info("\t\t\tSaving...{}", tickerOhlcEntity.toString());
                         dayCounter++;
-                        tickRepository.save(tickEntity);
+                        candleDailyRepository.save(candleDailyEntity);
                     }
 
                 }

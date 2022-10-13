@@ -41,52 +41,52 @@ public class Parser {
     List<Object> queryList = new ArrayList<>();
     var lineArr = _instance.query.split("\\R");
 
+    CriteriaGroup rootGroup = new CriteriaGroup();
+    queryList.add(rootGroup);
+
     CriteriaGroup criteriaGroup = null;
 
     for (String line : lineArr) {
 
+      System.err.println(line);
       line = line.replaceAll("\\s", "");
 
-      // AND OR
-      if (criteriaGroup != null && line.startsWith("AND")) {
-        if (line.matches("^AND$")) {
-          queryList.add(AndOrEnum.AND);
-        }
-        else {
-          criteriaGroup.add(AndOrEnum.AND);
-        }
+      CriteriaGroup criteriaGroupToAddTo = criteriaGroup != null ? criteriaGroup : rootGroup;
+
+      // AND
+      if (line.matches("^AND\\($")) {
+        queryList.add(AndOrEnum.AND);
+        criteriaGroup = new CriteriaGroup();
+        queryList.add(criteriaGroup);
+        continue;
       }
-      else if (criteriaGroup != null && line.startsWith("OR")) {
-        if (line.matches("^OR$")) {
-          queryList.add(AndOrEnum.OR);
-        }
-        else {
-          criteriaGroup.add(AndOrEnum.OR);
-        }
+      else if (line.startsWith("AND")) {
+        criteriaGroupToAddTo.add(AndOrEnum.AND);
+        criteriaGroupToAddTo.add(parseLine(line.replaceAll("^AND","")));
+        continue;
       }
-      line = line.replaceAll("(AND|OR)", "");
-      if (line.isBlank()) {
+
+      // OR
+      if (line.matches("^OR\\($")) {
+        queryList.add(AndOrEnum.OR);
+        criteriaGroup = new CriteriaGroup();
+        queryList.add(criteriaGroup);
+        continue;
+      }
+      else if (line.startsWith("OR")) {
+        criteriaGroupToAddTo.add(AndOrEnum.OR);
+        criteriaGroup.add(parseLine(line.replaceAll("^OR","")));
         continue;
       }
 
       // ( ) 
-      if (line.startsWith("(")) {
-        criteriaGroup = new CriteriaGroup();
-        queryList.add(criteriaGroup);
-        continue;
-      }
-      else if (line.endsWith(")")) {
+      if (line.endsWith(")")) {
         criteriaGroup = null;
         continue;
       }
 
-      Criteria criteria = parseLine(line);
-      if (criteriaGroup == null) {
-        criteriaGroup = new CriteriaGroup();
-        queryList.add(criteriaGroup);
-      }
-      
-      criteriaGroup.add(criteria);
+      criteriaGroupToAddTo.add(parseLine(line));
+
     }
 
     System.out.println("--");
@@ -115,7 +115,7 @@ public class Parser {
     List<Filter> filters =
       Arrays.stream(line.split(OPERATOR_PATTERN_STR))
           .map(filterStr -> {
-            System.out.println("\tfilterStr: " + filterStr);
+            System.out.println("\t\tfilterStr: " + filterStr);
             if (filterStr.matches(".*" + ARITHMETIC_OPERATOR_PATTERN_STR + ".*")) {
               Optional<ArithmeticOperator> arithmeticOperator = ArithmeticOperator.findOperator(filterStr);
               String leftFilterStr = filterStr.substring(0, filterStr.indexOf(arithmeticOperator.get().getSign()));

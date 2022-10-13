@@ -9,11 +9,13 @@ import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.crunch.CrunchService;
 import com.rno.tickerscanner.dao.QueryRepository;
 import com.rno.tickerscanner.dto.PatternMatchDto;
+import com.rno.tickerscanner.utils.DateUtils;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,7 +33,10 @@ public class QueryService {
   private final QueryAsyncService queryAsyncService;
 
   @SneakyThrows
+//  @Cacheable(cacheNames = "QueryService-search")
   public List<PatternMatchDto> search(String queryStr) throws InterruptedException {
+
+    queryRepository.dropAllTempTables();
 
     List<Object> queryList = Parser.builder()
         .query(queryStr)
@@ -76,20 +81,15 @@ public class QueryService {
     CompletableFuture.allOf(
         allFilterSet
             .stream()
+            .distinct()
             .map(crunchService::crunch)
             .toArray(arr -> new CompletableFuture[allFilterSet.size()])
-    );
+    ).join();
 
-    // get all CGs and iterate
-    // - create temp table
-    // - for each criteria
-    // -- insert 1st + delete each in temp table
-    // - join all temp tables
-
-    long timeinmillis = System.currentTimeMillis();
+    String timestampStr = LocalDateTime.now().format(DateUtils.ONLYDIGITS_DATEFORMAT);
     int criteriaGroupIdx = 0;
     for (CriteriaGroup criteriaGroup : allCriteriaGroups) {
-      criteriaGroup.setName("cg_" + criteriaGroupIdx++ + "_" + timeinmillis);
+      criteriaGroup.setName("cg_" + criteriaGroupIdx++ + "_" + timestampStr);
     }
 
     List<CompletableFuture<CriteriaGroup>> completableFutureList =
@@ -105,47 +105,6 @@ public class QueryService {
     // intersect all CGs
     List<PatternMatchDto> patternMatchDtoList =
         queryRepository.intersectAll(queryList);
-
-    System.out.println(patternMatchDtoList);
-
-
-
-
-
-
-
-//
-//    allCriterias.stream()
-//        .forEach(criteria -> {
-//          try {
-//            criteria.setResults(
-//                queryRepository.findPatternMatches(
-//                    criteria.getLeft(),
-//                    criteria.getOperator(),
-//                    criteria.getRight()));
-//          } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
-//
-//
-//    CompletableFuture.allOf(
-//        allCriterias.stream()
-//            .map(Criteria::getResults)
-//            .toArray(arr -> new CompletableFuture[allCriterias.size()])
-//    ).join();
-//
-//    allCriterias.stream()
-//        .forEach(criteria -> {
-//          System.out.println(criteria);
-//          try {
-//            System.out.println(criteria.getResults() != null ? criteria.getResults().get().size() :  0);
-//          } catch (InterruptedException e) {
-//            throw new RuntimeException(e);
-//          } catch (ExecutionException e) {
-//            throw new RuntimeException(e);
-//          }
-//        });
 
     return patternMatchDtoList;
   }

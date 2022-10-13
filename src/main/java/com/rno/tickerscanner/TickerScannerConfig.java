@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.aop.interceptor.AsyncUncaughtExceptionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -28,6 +29,7 @@ import java.util.concurrent.Executor;
 
 @Configuration
 @EnableAsync
+@EnableCaching
 public class TickerScannerConfig implements AsyncConfigurer, WebMvcConfigurer {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(TickerScannerConfig.class);

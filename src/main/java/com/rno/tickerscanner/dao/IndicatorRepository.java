@@ -95,7 +95,7 @@ public class IndicatorRepository {
             "FROM (\n" +
             "\tSELECT symbol, tick_time, \n" +
             "\t\t((high_price + low_price)/2) * volume / 1000000 AS value\n" +
-            "\tFROM ticks\n" +
+            "\tFROM candle_d\n" +
             ") ind\n" +
             " WHERE src.value IS NULL\n" +
             " AND src.symbol = ind.symbol\n" +
@@ -117,10 +117,10 @@ public class IndicatorRepository {
   private void insertSymbols(String tableName) {
     namedParameterJdbcTemplate.update(
         "INSERT INTO " + tableName + " (id, symbol, tick_time, value)\n" +
-            "\tSELECT gen_random_uuid(), ticks.symbol, ticks.tick_time, null \n" +
-            "\tFROM ticks\n" +
-            "\tLEFT OUTER JOIN " + tableName + " ON ticks.symbol = " + tableName + ".symbol\n" +
-            "\t  AND ticks.tick_time  = " + tableName + ".tick_time\n" +
+            "\tSELECT gen_random_uuid(), candle_d.symbol, candle_d.tick_time, null \n" +
+            "\tFROM candle_d\n" +
+            "\tLEFT OUTER JOIN " + tableName + " ON candle_d.symbol = " + tableName + ".symbol\n" +
+            "\t  AND candle_d.tick_time  = " + tableName + ".tick_time\n" +
             "\tWHERE " + tableName + ".symbol IS NULL \n" +
             "ON CONFLICT DO NOTHING",
         new MapSqlParameterSource()
@@ -139,7 +139,7 @@ public class IndicatorRepository {
         "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
             "FROM (\n" +
             "\t\tSELECT symbol, tick_time, " + aggFunctionFull + " OVER(ORDER BY symbol,tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
-            "\t\tFROM ticks\n" +
+            "\t\tFROM candle_d\n" +
             ") tmp\n" +
             "  WHERE src.value IS NULL\n" +
             " AND src.symbol = tmp.symbol\n" +

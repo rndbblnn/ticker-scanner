@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.dao.entity.TickEntity;
+import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -9,24 +9,20 @@ import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
-public interface TickRepository extends CrudRepository<TickEntity, Long> {
+public interface CandleDailyRepository extends CrudRepository<CandleDailyEntity, Long> {
 
   boolean existsTickEntityByTickTimeAndSymbol(LocalDateTime tickTime, String symbol);
 
-  Optional<TickEntity> findTickEntityBySymbolAndTimeframeAndTickTime(String symbol, String timeframe, LocalDateTime tickTime);
-
-  Iterable<TickEntity> findTop200BySymbolAndTickTimeLessThanEqualOrderByTickTimeDesc(String symbol, LocalDateTime tickTime);
-
-  boolean existsTickEntityBySymbolAndTimeframeAndTickTime(String symbol, String timeframe, LocalDateTime tickTime);
+  Optional<CandleDailyEntity> findBySymbolAndTickTime(String symbol, LocalDateTime tickTime);
 
   @Query(nativeQuery = true, value =
-      "SELECT * FROM ticks WHERE symbol = :symbol ORDER BY tick_time DESC LIMIT 1")
-  Optional<TickEntity> findLatestByTickerName(String symbol);
+      "SELECT * FROM candle_d WHERE symbol = :symbol ORDER BY tick_time DESC LIMIT 1")
+  Optional<CandleDailyEntity> findLatestByTickerName(String symbol);
 
   @Transactional
   @Modifying
   @Query(nativeQuery = true, value =
-      "UPDATE ticks t SET tr = sub.tr\n" +
+      "UPDATE candle_d t SET tr = sub.tr\n" +
           "FROM (\n" +
           "  SELECT symbol, tick_time, GREATEST(high_price-low_price,high_price-prev_close,low_price-prev_close) AS tr\n" +
           "  FROM (\n" +
@@ -53,7 +49,7 @@ public interface TickRepository extends CrudRepository<TickEntity, Long> {
           "                AS prev_close,\n" +
           "            lag(low_price, 1) OVER(ORDER BY symbol,tick_time)\n" +
           "                AS prev_low\n" +
-          "        FROM ticks\n" +
+          "        FROM candle_d\n" +
           "      ) subq111\n" +
           "    ) subq11\n" +
           "  ) subq1 \n" +
@@ -66,7 +62,7 @@ public interface TickRepository extends CrudRepository<TickEntity, Long> {
   @Transactional
   @Modifying
   @Query(nativeQuery = true, value =
-      "UPDATE ticks " +
+      "UPDATE candle_d " +
           "SET tr_pct = (100*(tr/close_price)) " +
           "WHERE tr_pct IS NULL")
   void updateTrPct();

@@ -1,5 +1,6 @@
 package com.rno.tickerscanner.aql;
 
+import com.rno.tickerscanner.QueryServiceTest;
 import com.rno.tickerscanner.aql.filter.Filter;
 import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.aql.filter.NumberFilter;
@@ -148,6 +149,16 @@ public class ParserTest {
         Parser.builder()
             .query(ARITHMETIC_TEST_QUERY)
             .build();
+  }
+
+  @Test
+  public void testParse_queryFromQueryServiceTest() {
+    List<Object> query =
+        Parser.builder()
+            .query(QueryServiceTest.SCAN_TEST_QUERY)
+            .build();
+
+    System.out.println(query);
   }
 
 

@@ -4,9 +4,9 @@ import com.google.common.base.Stopwatch;
 import com.rno.tickerscanner.aql.CriteriaGroup;
 import com.rno.tickerscanner.aql.filter.Filter;
 import com.rno.tickerscanner.aql.filter.IndicatorFilter;
+import com.rno.tickerscanner.dao.CandleDailyRepository;
 import com.rno.tickerscanner.dao.IndicatorRepository;
-import com.rno.tickerscanner.dao.TickRepository;
-import com.rno.tickerscanner.dao.entity.TickEntity;
+import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
 import com.rno.tickerscanner.dto.PatternMatchDto;
 import com.rno.tickerscanner.utils.DateUtils;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class CrunchService {
 
-  private final TickRepository tickRepository;
+  private final CandleDailyRepository candleDailyRepository;
   private final IndicatorRepository indicatorRepository;
 
   public void prepare() {
@@ -33,16 +33,17 @@ public class CrunchService {
     // crunch ticks table (ATR)
     log.info("updating TR...");
     Stopwatch sw = Stopwatch.createStarted();
-    tickRepository.updateTr();
+    candleDailyRepository.updateTr();
     log.info("updating TR [done: {}]", sw);
 
     log.info("updating TR % ...");
     sw.reset().start();
-    tickRepository.updateTrPct();
+    candleDailyRepository.updateTrPct();
     log.info("updating TR % [done: {}]", sw);
   }
 
   @Async
+//  @Cacheable(cacheNames = "CrunchService-crunch", key="#filter.toString()")
   public CompletableFuture<Void> crunch(Filter filter) {
     Stopwatch sw = Stopwatch.createStarted();
     if (filter instanceof IndicatorFilter) {
@@ -102,7 +103,7 @@ public class CrunchService {
     final LocalDate latestMarketDay = DateUtils.minusMarketDays(LocalDate.now(), 1);
 
     // get latest SPY
-    Optional<TickEntity> tickEntityOpt = tickRepository.findLatestByTickerName("SPY");
+    Optional<CandleDailyEntity> tickEntityOpt = candleDailyRepository.findLatestByTickerName("SPY");
 
     do {
 
@@ -110,7 +111,7 @@ public class CrunchService {
 
     } while (tickEntityOpt.get().getTickTime().isBefore(latestMarketDay.atTime(16, 0)));
 
-    tickRepository.existsTickEntityByTickTimeAndSymbol(
+    candleDailyRepository.existsTickEntityByTickTimeAndSymbol(
         DateUtils.minusMarketDays(LocalDate.now(), 1).atTime(16, 0),
         "SPY"
     );
