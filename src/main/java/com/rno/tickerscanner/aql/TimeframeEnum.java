@@ -6,4 +6,12 @@ public enum TimeframeEnum {
   public String toTimeframeStr() {
     return this.name().replaceAll("tf\\_", "");
   }
+
+  public static TimeframeEnum fromTimeframeStr(String timeframeStr) {
+    try {
+      return TimeframeEnum.valueOf("tf_" + timeframeStr);
+    } catch (IllegalArgumentException e) {
+      return null;
+    }
+  }
 }

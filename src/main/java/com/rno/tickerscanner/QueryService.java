@@ -10,11 +10,6 @@ import com.rno.tickerscanner.crunch.CrunchService;
 import com.rno.tickerscanner.dao.QueryRepository;
 import com.rno.tickerscanner.dto.PatternMatchDto;
 import com.rno.tickerscanner.utils.DateUtils;
-import lombok.AllArgsConstructor;
-import lombok.SneakyThrows;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -22,6 +17,11 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
+import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
 
 @Service
 @AllArgsConstructor
@@ -33,7 +33,7 @@ public class QueryService {
   private final QueryAsyncService queryAsyncService;
 
   @SneakyThrows
-//  @Cacheable(cacheNames = "QueryService-search")
+  @Cacheable(cacheNames = "QueryService-search")
   public List<PatternMatchDto> search(String queryStr) throws InterruptedException {
 
     queryRepository.dropAllTempTables();
@@ -104,7 +104,10 @@ public class QueryService {
 
     // intersect all CGs
     List<PatternMatchDto> patternMatchDtoList =
-        queryRepository.intersectAll(queryList);
+        queryRepository.intersectAll(queryList)
+            .stream()
+            .filter(patternMatchDto -> patternMatchDto.getPatternTime().isAfter(LocalDateTime.of(2019,1,1,0,0)))
+            .collect(Collectors.toList());
 
     return patternMatchDtoList;
   }

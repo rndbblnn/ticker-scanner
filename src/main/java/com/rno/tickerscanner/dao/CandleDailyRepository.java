@@ -1,13 +1,13 @@
 package com.rno.tickerscanner.dao;
 
 import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+import javax.transaction.Transactional;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
-
-import javax.transaction.Transactional;
-import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface CandleDailyRepository extends CrudRepository<CandleDailyEntity, Long> {
 
@@ -66,4 +66,14 @@ public interface CandleDailyRepository extends CrudRepository<CandleDailyEntity,
           "SET tr_pct = (100*(tr/close_price)) " +
           "WHERE tr_pct IS NULL")
   void updateTrPct();
+
+  @Query(nativeQuery = true,
+      value =
+          "SELECT * FROM candle_d "
+              + "WHERE symbol = :symbol "
+              + "AND tick_time >= :from "
+              + "AND tick_time <= :to "
+              + "ORDER BY tick_time"
+  )
+  List<CandleDailyEntity> findAll(String symbol, LocalDateTime from, LocalDateTime to);
 }
