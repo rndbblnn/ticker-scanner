@@ -5,11 +5,13 @@ import com.rno.tickerscanner.QueryService;
 import com.rno.tickerscanner.dto.PatternMatchDto;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.BooleanUtils;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -27,15 +29,23 @@ public class QueryController {
         .build();
   }
 
-  @GetMapping("/search")
-  @SneakyThrows
-  public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @RequestParam(required = false) Boolean mock) {
+//  @GetMapping("/search")
+//  @SneakyThrows
+//  public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @RequestParam(required = false) Boolean mock) {
+@PostMapping("/search")
+@SneakyThrows
+public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @RequestParam(required = false) Boolean mock) {
+//    byte[] decodedBytes = Base64.getDecoder().decode(q);
+//    String decodedString = new String(decodedBytes);
 
-//    log.info("query:\n{}", q);
+//    log.info("query:\n{}", decodedString);
 
     var results = BooleanUtils.isTrue(mock)
         ? MOCK_RESPONSE_LIST
-        : queryService.search(q);
+        : queryService.search(q)
+            .stream()
+            .limit(50)
+            .collect(Collectors.toList());
 
     log.info("Returning {} PatternMatches", results.size());
 

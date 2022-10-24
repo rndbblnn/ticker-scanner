@@ -1,13 +1,12 @@
 package com.rno.tickerscanner.dao;
 
+import com.rndbblnn.stonks.commons.entity.CandleDailyEntity;
 import com.rno.tickerscanner.BaseIntegrationTest;
-import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 
 public class CandleDailyRepositoryIntegrationTest extends BaseIntegrationTest {
 

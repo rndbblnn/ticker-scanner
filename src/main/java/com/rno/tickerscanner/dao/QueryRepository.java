@@ -8,16 +8,16 @@ import com.rno.tickerscanner.aql.filter.Filter;
 import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.aql.filter.NumberFilter;
 import com.rno.tickerscanner.dto.PatternMatchDto;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Locale;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @Repository
 public class QueryRepository {
@@ -28,11 +28,20 @@ public class QueryRepository {
   @Autowired
   private NamedParameterJdbcTemplate namedParameterJdbcTemplate;
 
+  public boolean existsUnloggedTable(String unloggedTableName) {
+    return namedParameterJdbcTemplate.query(
+            "SELECT 1 FROM pg_class WHERE relpersistence='u' AND lower(relname) = :unloggedTableName",
+            new MapSqlParameterSource()
+                .addValue("unloggedTableName", unloggedTableName.toLowerCase(Locale.ROOT)),
+            (rs, rowNum) -> 1).stream()
+        .findAny().isPresent();
+  }
+
   @Transactional
   public void createTempTable(CriteriaGroup criteriaGroup) {
     entityManager.createNativeQuery(
         "CREATE UNLOGGED TABLE " + criteriaGroup.getTableName() +
-            "(" + String.format(IndicatorRepository.CREATE_TABLE_COLUMNS, criteriaGroup.getTableName(), criteriaGroup.getTableName()) + ")"
+            " (" + String.format(IndicatorRepository.CREATE_TABLE_COLUMNS, criteriaGroup.getTableName(), criteriaGroup.getTableName()) + ")"
     ).executeUpdate();
   }
 
@@ -71,7 +80,8 @@ public class QueryRepository {
 
   public static final String getFilterQueryStr(Filter filter) {
     if (filter instanceof IndicatorFilter) {
-      return "    SELECT symbol, tick_time, LAG(" + ((IndicatorFilter) filter).getColumnName() + ", "+((IndicatorFilter) filter).getOffset()+") OVER(ORDER BY symbol, tick_time) AS lag_value\n" +
+      return "    SELECT symbol, tick_time, LAG(" + ((IndicatorFilter) filter).getColumnName() + ", "
+          + ((IndicatorFilter) filter).getOffset() + ") OVER(ORDER BY symbol, tick_time) AS lag_value\n" +
           "    FROM " + ((IndicatorFilter) filter).getTableName() + "\n";
     }
     if (filter instanceof NumberFilter) {
@@ -85,13 +95,14 @@ public class QueryRepository {
         throw new RuntimeException("Unsupported. ArithmeticFilter within ArithmeticFilter");
       }
       return
-          "SELECT symbol, tick_time, (i1.lag_value " + arithmeticFilter.getArithmeticOperator().getSign() + " i2.lag_value) AS lag_value \n" +
-          " FROM (\n" +
-          "    " + getFilterQueryStr(arithmeticFilter.getLeft()) +
-          ") i1 \n" +
-          "JOIN (\n" +
-          "    " + getFilterQueryStr(arithmeticFilter.getRight()) +
-          ") i2 USING (symbol, tick_time) \n";
+          "SELECT symbol, tick_time, (i1.lag_value " + arithmeticFilter.getArithmeticOperator().getSign() + " i2.lag_value) AS lag_value \n"
+              +
+              " FROM (\n" +
+              "    " + getFilterQueryStr(arithmeticFilter.getLeft()) +
+              ") i1 \n" +
+              "JOIN (\n" +
+              "    " + getFilterQueryStr(arithmeticFilter.getRight()) +
+              ") i2 USING (symbol, tick_time) \n";
 
     }
     throw new RuntimeException("Unsupported filter: " + filter);
@@ -125,7 +136,7 @@ public class QueryRepository {
       }
     }
 
-    sb.append(" ORDER BY tick_time, symbol");
+    sb.append(" ORDER BY tick_time DESC, symbol");
 
     return namedParameterJdbcTemplate.query(sb.toString(), new MapSqlParameterSource(),
         (rs, rowNum) -> new PatternMatchDto()
@@ -133,6 +144,7 @@ public class QueryRepository {
             .setPatternTime(rs.getObject("tick_time", LocalDateTime.class))
     );
   }
+
   @Transactional
   public void dropAllTempTables() {
     namedParameterJdbcTemplate.query(

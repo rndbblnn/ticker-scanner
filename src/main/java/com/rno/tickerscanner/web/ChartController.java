@@ -1,8 +1,9 @@
 package com.rno.tickerscanner.web;
 
+import com.rndbblnn.stonks.commons.entity.BaseCandle;
 import com.rno.tickerscanner.aql.TimeframeEnum;
+import com.rno.tickerscanner.dao.Candle1mRepository;
 import com.rno.tickerscanner.dao.CandleDailyRepository;
-import com.rno.tickerscanner.dao.entity.BaseCandle;
 import java.time.LocalDate;
 import java.util.List;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class ChartController {
 
   private final CandleDailyRepository candleDailyRepository;
+  private final Candle1mRepository candle1mRepository;
 
   @GetMapping("/chart/{symbol}/{timeframe}")
   @SneakyThrows
@@ -42,6 +44,9 @@ public class ChartController {
 
     switch (timeframeEnum) {
       case tf_d:
+        candleList = candleDailyRepository.findAll(symbol, from.atTime(0,0), to.atTime(23,59));
+        break;
+      case tf_1m:
         candleList = candleDailyRepository.findAll(symbol, from.atTime(0,0), to.atTime(23,59));
         break;
       default:

@@ -29,6 +29,8 @@ repositories {
 }
 
 dependencies {
+	implementation 'com.github.rndbblnn:stonks-commons-starter:main-SNAPSHOT'
+
 	// spring stuff
 	//implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
@@ -100,4 +102,10 @@ idea {
 
 test {
 	useJUnitPlatform()
+//	exclude 'com/rno/tickerscanner/**'
+	filter {
+		includeTestsMatching "com.rno.tickerscanner.BaseIntegrationTest"
+	}
+	testLogging.showStandardStreams = true
 }
+

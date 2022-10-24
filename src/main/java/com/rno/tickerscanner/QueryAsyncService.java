@@ -4,12 +4,11 @@ import com.rno.tickerscanner.aql.AndOrEnum;
 import com.rno.tickerscanner.aql.Criteria;
 import com.rno.tickerscanner.aql.CriteriaGroup;
 import com.rno.tickerscanner.dao.QueryRepository;
+import java.util.concurrent.CompletableFuture;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
-
-import java.util.concurrent.CompletableFuture;
 
 @Service
 @AllArgsConstructor
@@ -20,6 +19,12 @@ public class QueryAsyncService {
 
   @Async
   public CompletableFuture<CriteriaGroup> process(CriteriaGroup criteriaGroup) {
+
+    System.out.println(criteriaGroup.getTableName());
+    if (queryRepository.existsUnloggedTable(criteriaGroup.getTableName())) {
+      log.info("\t criteriaGroup {}: already exists. Returning it. ", criteriaGroup.getName());
+      return CompletableFuture.completedFuture(criteriaGroup);
+    }
 
     log.info("\t criteriaGroup {}: processing... ", criteriaGroup.getName());
 

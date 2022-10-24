@@ -2,16 +2,9 @@ package com.rno.tickerscanner.api;
 
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
+import com.rndbblnn.stonks.commons.entity.CandleDailyEntity;
 import com.rno.tickerscanner.dao.CandleDailyRepository;
 import com.rno.tickerscanner.dao.PatternMatchRepository;
-import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
-import lombok.SneakyThrows;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.Reader;
@@ -19,6 +12,12 @@ import java.nio.file.Files;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
+import lombok.SneakyThrows;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 @Component
 public class StooqService {

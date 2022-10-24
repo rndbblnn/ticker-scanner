@@ -1,6 +1,6 @@
 package com.rno.tickerscanner.dao;
 
-import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
+import com.rndbblnn.stonks.commons.entity.CandleDailyEntity;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;

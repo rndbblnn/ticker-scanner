@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -33,10 +32,10 @@ public class QueryService {
   private final QueryAsyncService queryAsyncService;
 
   @SneakyThrows
-  @Cacheable(cacheNames = "QueryService-search")
+//  @Cacheable(cacheNames = "QueryService-search")
   public List<PatternMatchDto> search(String queryStr) throws InterruptedException {
 
-    queryRepository.dropAllTempTables();
+//    queryRepository.dropAllTempTables();
 
     List<Object> queryList = Parser.builder()
         .query(queryStr)
@@ -86,10 +85,9 @@ public class QueryService {
             .toArray(arr -> new CompletableFuture[allFilterSet.size()])
     ).join();
 
-    String timestampStr = LocalDateTime.now().format(DateUtils.ONLYDIGITS_DATEFORMAT);
-    int criteriaGroupIdx = 0;
+    String timestampStr = LocalDateTime.now().format(DateUtils.ONLYDIGITS_NOTIME_DATEFORMAT);
     for (CriteriaGroup criteriaGroup : allCriteriaGroups) {
-      criteriaGroup.setName("cg_" + criteriaGroupIdx++ + "_" + timestampStr);
+      criteriaGroup.setName("cg_" + timestampStr + "_" + String.valueOf(criteriaGroup.getCriterias().hashCode()).replaceAll("\\-", "D"));
     }
 
     List<CompletableFuture<CriteriaGroup>> completableFutureList =
@@ -106,7 +104,8 @@ public class QueryService {
     List<PatternMatchDto> patternMatchDtoList =
         queryRepository.intersectAll(queryList)
             .stream()
-            .filter(patternMatchDto -> patternMatchDto.getPatternTime().isAfter(LocalDateTime.of(2019,1,1,0,0)))
+            .filter(patternMatchDto -> patternMatchDto.getPatternTime().isAfter(LocalDateTime.of(2019,3,1,0,0)))
+            .filter(patternMatchDto -> patternMatchDto.getPatternTime().isBefore(LocalDateTime.now().minusMonths(2)))
             .collect(Collectors.toList());
 
     return patternMatchDtoList;

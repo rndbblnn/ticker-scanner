@@ -1,11 +1,12 @@
 package com.rno.tickerscanner.aql;
 
-import lombok.Data;
-
 import java.util.ArrayList;
 import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 @Data
+@EqualsAndHashCode
 public class CriteriaGroup {
 
     private String name;

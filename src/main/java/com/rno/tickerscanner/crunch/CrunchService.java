@@ -1,23 +1,22 @@
 package com.rno.tickerscanner.crunch;
 
 import com.google.common.base.Stopwatch;
+import com.rndbblnn.stonks.commons.entity.CandleDailyEntity;
 import com.rno.tickerscanner.aql.CriteriaGroup;
 import com.rno.tickerscanner.aql.filter.Filter;
 import com.rno.tickerscanner.aql.filter.IndicatorFilter;
 import com.rno.tickerscanner.dao.CandleDailyRepository;
 import com.rno.tickerscanner.dao.IndicatorRepository;
-import com.rno.tickerscanner.dao.entity.CandleDailyEntity;
 import com.rno.tickerscanner.dto.PatternMatchDto;
 import com.rno.tickerscanner.utils.DateUtils;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.stereotype.Component;
 
 @Component
 @AllArgsConstructor

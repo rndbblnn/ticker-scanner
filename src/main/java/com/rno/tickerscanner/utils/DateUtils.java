@@ -1,7 +1,6 @@
 package com.rno.tickerscanner.utils;
 
 import com.rno.tickerscanner.TickerScannerConstants;
-
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,6 +20,12 @@ public class DateUtils {
             .appendValue(ChronoField.MINUTE_OF_HOUR, 2)
             .appendValue(ChronoField.SECOND_OF_MINUTE, 2)
             .appendValue(ChronoField.MILLI_OF_SECOND, 3)
+            .toFormatter();
+
+    public static final DateTimeFormatter ONLYDIGITS_NOTIME_DATEFORMAT =
+        new DateTimeFormatterBuilder().appendValue(ChronoField.YEAR, 4)
+            .appendValue(ChronoField.MONTH_OF_YEAR, 2)
+            .appendValue(ChronoField.DAY_OF_MONTH, 2)
             .toFormatter();
 
     public static final DateTimeFormatter YEARMONTH_DATEFORMAT = DateTimeFormatter.ofPattern("YY-MMM");
