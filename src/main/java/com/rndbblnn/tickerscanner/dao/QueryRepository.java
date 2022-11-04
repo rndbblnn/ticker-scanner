@@ -46,7 +46,6 @@ public class QueryRepository {
   }
 
   @Transactional
-//  @Cacheable(cacheNames = "QueryRepository-insertCriteria", key = "#criteriaGroup.criterias.toString()+#criteria.toString()")
   public void insertCriteria(CriteriaGroup criteriaGroup, Criteria criteria) {
     String criteriaQueryStr = getCriteriaQueryStr(criteria);
     namedParameterJdbcTemplate.update(
@@ -58,7 +57,6 @@ public class QueryRepository {
   }
 
   @Transactional
-//  @Cacheable(cacheNames = "QueryRepository-deleteCriteria", key = "#criteriaGroup.criterias.toString()+#criteria.toString()")
   public void deleteCriteria(CriteriaGroup criteriaGroup, Criteria criteria) {
     namedParameterJdbcTemplate.update(
         "DELETE FROM " + criteriaGroup.getTableName() + " tmp " +

@@ -3,6 +3,7 @@ package com.rndbblnn.tickerscanner.web;
 import com.google.common.collect.Lists;
 import com.rndbblnn.tickerscanner.QueryService;
 import com.rndbblnn.tickerscanner.dto.PatternMatchDto;
+import com.rndbblnn.tickerscanner.web.dto.APIResponse;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,17 +30,9 @@ public class QueryController {
         .build();
   }
 
-//  @GetMapping("/search")
-//  @SneakyThrows
-//  public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @RequestParam(required = false) Boolean mock) {
 @PostMapping("/search")
 @SneakyThrows
 public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @RequestParam(required = false) Boolean mock) {
-//    byte[] decodedBytes = Base64.getDecoder().decode(q);
-//    String decodedString = new String(decodedBytes);
-
-//    log.info("query:\n{}", decodedString);
-
     var results = BooleanUtils.isTrue(mock)
         ? MOCK_RESPONSE_LIST
         : queryService.search(q)
@@ -71,5 +64,4 @@ public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @Req
                   .withNano(0))
               .setSymbol("ENPH")
       );
-
 }

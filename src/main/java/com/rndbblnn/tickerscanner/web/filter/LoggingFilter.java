@@ -1,4 +1,4 @@
-package com.rndbblnn.tickerscanner.web;
+package com.rndbblnn.tickerscanner.web.filter;
 
 import com.google.common.base.Stopwatch;
 import java.io.IOException;

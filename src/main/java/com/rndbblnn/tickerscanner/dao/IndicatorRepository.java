@@ -169,7 +169,6 @@ public class IndicatorRepository {
       case MAXL:
       case MAXC:
       case MAXV:
-
       case AVGDV:
       case MINDV:
       case MAXDV:

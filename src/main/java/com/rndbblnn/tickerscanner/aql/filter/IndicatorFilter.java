@@ -1,7 +1,7 @@
 package com.rndbblnn.tickerscanner.aql.filter;
 
+import com.rndbblnn.stonks.commons.dto.TimeframeEnum;
 import com.rndbblnn.tickerscanner.aql.IndicatorEnum;
-import com.rndbblnn.tickerscanner.aql.TimeframeEnum;
 import java.util.Locale;
 import lombok.AllArgsConstructor;
 import lombok.Data;

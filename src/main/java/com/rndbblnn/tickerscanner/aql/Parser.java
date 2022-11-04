@@ -50,6 +50,10 @@ public class Parser {
       System.err.println(line);
       line = line.replaceAll("\\s", "");
 
+      if (line.startsWith("#")) {
+        continue;
+      }
+
       CriteriaGroup criteriaGroupToAddTo = criteriaGroup != null ? criteriaGroup : rootGroup;
 
       // AND
@@ -88,7 +92,6 @@ public class Parser {
 
     }
 
-    System.out.println("--");
     queryList.forEach(q -> {
       if (q instanceof CriteriaGroup) {
         

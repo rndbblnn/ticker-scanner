@@ -1,5 +1,6 @@
 package com.rndbblnn.tickerscanner;
 
+import com.rndbblnn.stonks.commons.utils.DateUtils;
 import com.rndbblnn.tickerscanner.aql.Criteria;
 import com.rndbblnn.tickerscanner.aql.CriteriaGroup;
 import com.rndbblnn.tickerscanner.aql.Parser;
@@ -9,7 +10,6 @@ import com.rndbblnn.tickerscanner.aql.filter.IndicatorFilter;
 import com.rndbblnn.tickerscanner.crunch.CrunchService;
 import com.rndbblnn.tickerscanner.dao.QueryRepository;
 import com.rndbblnn.tickerscanner.dto.PatternMatchDto;
-import com.rndbblnn.tickerscanner.utils.DateUtils;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
