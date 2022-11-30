@@ -22,6 +22,9 @@ public class ParserTest {
           "   OR [d]MINDV5.5 > 3\n" +
           ")\n";
 
+  public static final String XAVGC200_TEST_QUERY =
+      "[d]XAVGC200.1 >= 1.1";
+
   @Test
   public void testParseDailyCloseEqualAvgc10() {
     List<Object> query =
@@ -158,6 +161,14 @@ public class ParserTest {
             .build();
 
     System.out.println(query);
+  }
+
+  @Test
+  public void testParse_xavgcCriteria() {
+    List<Object> query =
+        Parser.builder()
+            .query(XAVGC200_TEST_QUERY)
+            .build();
   }
 
 

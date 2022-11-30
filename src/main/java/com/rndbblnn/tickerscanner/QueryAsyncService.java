@@ -7,6 +7,7 @@ import com.rndbblnn.tickerscanner.dao.QueryRepository;
 import java.util.concurrent.CompletableFuture;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
@@ -20,13 +21,12 @@ public class QueryAsyncService {
   @Async
   public CompletableFuture<CriteriaGroup> process(CriteriaGroup criteriaGroup) {
 
-    System.out.println(criteriaGroup.getTableName());
     if (queryRepository.existsUnloggedTable(criteriaGroup.getTableName())) {
-      log.info("\t criteriaGroup {}: already exists. Returning it. ", criteriaGroup.getName());
+      log.info("{}: already exists. Returning it. ", StringUtils.rightPad(criteriaGroup.getName(),23));
       return CompletableFuture.completedFuture(criteriaGroup);
     }
 
-    log.info("\t criteriaGroup {}: processing... ", criteriaGroup.getName());
+    log.info("{}: processing... ", StringUtils.rightPad(criteriaGroup.getName(),23));
 
     queryRepository.createTempTable(criteriaGroup);
 
@@ -38,12 +38,12 @@ public class QueryAsyncService {
         continue;
       }
       if (criteriaAndOr == null || criteriaAndOr.equals(AndOrEnum.OR)) {
-        log.info("\t{} insert criteria {}", criteriaGroup.getName(), critObj);
+        log.info("\t{}: insert criteria {}", StringUtils.rightPad(criteriaGroup.getName(),23), critObj);
         queryRepository.insertCriteria(criteriaGroup, (Criteria) critObj);
         continue;
       }
 
-      log.info("\t{} delete criteria {}", criteriaGroup.getName(), critObj);
+      log.info("\t{}: delete criteria {}", StringUtils.rightPad(criteriaGroup.getName(),23), critObj);
       queryRepository.deleteCriteria(criteriaGroup, (Criteria) critObj);
     }
 

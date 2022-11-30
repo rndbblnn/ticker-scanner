@@ -37,7 +37,7 @@ public APIResponse<List<PatternMatchDto>> getSearch(@RequestParam String q, @Req
         ? MOCK_RESPONSE_LIST
         : queryService.search(q)
             .stream()
-            .limit(50)
+            .limit(100)
             .collect(Collectors.toList());
 
     log.info("Returning {} PatternMatches", results.size());

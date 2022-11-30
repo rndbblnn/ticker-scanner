@@ -34,8 +34,9 @@ public class QueryServiceTest extends BaseIntegrationTest {
   public void scanTest() {
 
 //    System.out.println(queryService.search("[d]C.0 / [d]C.1 > 1.1"));
+    System.out.println(queryService.search("200([d]C.1 < [d]EMA200.1)"));
 //    queryService.search("1.0 / 1.0 > 1.1");
-    System.out.println(queryService.search(SCAN_TEST_QUERY).size());
+//    System.out.println(queryService.search(SCAN_TEST_QUERY).size());
 
   }
 

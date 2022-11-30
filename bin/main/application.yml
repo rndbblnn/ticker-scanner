@@ -5,7 +5,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/stonks
     username: postgres
-    password: password
+    password: postgre$$$
   jpa:
     generate-ddl: 'false'
     database: POSTGRESQL
@@ -35,12 +35,13 @@ spring:
 
 logging:
   level:
+    root: INFO
     com.rno: INFO
     org.springframework: INFO
     org.flyway: INFO
     com.zaxxer.hikari: WARN
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.dql: TRACE
+#    org.hibernate.SQL: DEBUG
+#    org.hibernate.type.descriptor.dql: TRACE
     io.netty: WARN
     reactor.netty: WARN
     org.jboss: WARN
@@ -48,3 +49,4 @@ logging:
     org.thymeleaf: INFO
     com.datastax.oss: INFO
     org.apache.commons.beanutils: INFO
+#    org.springframework.cache: TRACE

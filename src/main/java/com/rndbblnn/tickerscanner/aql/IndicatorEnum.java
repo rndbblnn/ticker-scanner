@@ -5,6 +5,7 @@ import java.util.Arrays;
 public enum IndicatorEnum {
 
   AVGO, MINO, MAXO, AVGH, MINH, MAXH, AVGL, MINL, MAXL, AVGC, MINC, MAXC, AVGV, MINV, MAXV,
+  EMA,
   AVGDV, MINDV, MAXDV, DV,
   ATR,
   O, H, L, C, V;

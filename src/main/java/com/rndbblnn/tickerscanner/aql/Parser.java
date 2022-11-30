@@ -26,6 +26,7 @@ public class Parser {
   private String query;
 
   private static Parser _instance;
+
   public static Parser builder() {
     _instance = new Parser();
     return _instance;
@@ -62,10 +63,9 @@ public class Parser {
         criteriaGroup = new CriteriaGroup();
         queryList.add(criteriaGroup);
         continue;
-      }
-      else if (line.startsWith("AND")) {
+      } else if (line.startsWith("AND")) {
         criteriaGroupToAddTo.add(AndOrEnum.AND);
-        criteriaGroupToAddTo.add(parseLine(line.replaceAll("^AND","")));
+        criteriaGroupToAddTo.add(parseLine(line.replaceAll("^AND", "")));
         continue;
       }
 
@@ -75,10 +75,9 @@ public class Parser {
         criteriaGroup = new CriteriaGroup();
         queryList.add(criteriaGroup);
         continue;
-      }
-      else if (line.startsWith("OR")) {
+      } else if (line.startsWith("OR")) {
         criteriaGroupToAddTo.add(AndOrEnum.OR);
-        criteriaGroup.add(parseLine(line.replaceAll("^OR","")));
+        criteriaGroup.add(parseLine(line.replaceAll("^OR", "")));
         continue;
       }
 
@@ -88,20 +87,27 @@ public class Parser {
         continue;
       }
 
-      criteriaGroupToAddTo.add(parseLine(line));
+      List<Filter> filters;
+      if (line.matches("[0-9]{1,4}\\(")) {
+//        int itCount = line.replaceAll("[^0-9{1,4}]")
+        throw new UnsupportedOperationException("");
+      }
+      else {
+        criteriaGroupToAddTo.add(parseLine(line));
+      }
+
 
     }
 
     queryList.forEach(q -> {
       if (q instanceof CriteriaGroup) {
-        
+
         System.out.println("\t" + Integer.toHexString(q.hashCode()));
 
         ((CriteriaGroup) q).getCriterias().forEach(c -> {
           System.out.println("\t\t" + c);
         });
-      }
-      else {
+      } else {
         System.out.println(q);
       }
     });
@@ -110,37 +116,34 @@ public class Parser {
   }
 
   private static Criteria parseLine(String line) {
-    
+
     line = line.replaceAll("\\s", "");
-    System.out.println("line: " + line);
 
     List<Filter> filters =
-      Arrays.stream(line.split(OPERATOR_PATTERN_STR))
-          .map(filterStr -> {
-            System.out.println("\t\tfilterStr: " + filterStr);
-            if (filterStr.matches(".*" + ARITHMETIC_OPERATOR_PATTERN_STR + ".*")) {
-              Optional<ArithmeticOperator> arithmeticOperator = ArithmeticOperator.findOperator(filterStr);
-              String leftFilterStr = filterStr.substring(0, filterStr.indexOf(arithmeticOperator.get().getSign()));
-              String rightFilterStr = filterStr.substring(filterStr.indexOf(arithmeticOperator.get().getSign())+1);
-              return new ArithmeticFilter()
-                  .setLeft(getFilter(leftFilterStr))
-                  .setArithmeticOperator(arithmeticOperator.get())
-                  .setRight(getFilter(rightFilterStr));
-            }
-            else {
-              return getFilter(filterStr);
-            }
-          })
-          .collect(Collectors.toList());
+        Arrays.stream(line.split(OPERATOR_PATTERN_STR))
+            .map(filterStr -> {
+              if (filterStr.matches(".*" + ARITHMETIC_OPERATOR_PATTERN_STR + ".*")) {
+                Optional<ArithmeticOperator> arithmeticOperator = ArithmeticOperator.findOperator(filterStr);
+                String leftFilterStr = filterStr.substring(0, filterStr.indexOf(arithmeticOperator.get().getSign()));
+                String rightFilterStr = filterStr.substring(filterStr.indexOf(arithmeticOperator.get().getSign()) + 1);
+                return new ArithmeticFilter()
+                    .setLeft(getFilter(leftFilterStr))
+                    .setArithmeticOperator(arithmeticOperator.get())
+                    .setRight(getFilter(rightFilterStr));
+              } else {
+                return getFilter(filterStr);
+              }
+            })
+            .collect(Collectors.toList());
 
-      Criteria criteria = new Criteria()
-          .setLeft(filters.get(0))
-          .setOperator(OperatorEnum.fromLine(line))
-          .setRight(filters.get(1));
+    Criteria criteria = new Criteria()
+        .setLeft(filters.get(0))
+        .setOperator(OperatorEnum.fromLine(line))
+        .setRight(filters.get(1));
 
-      System.out.println(criteria);
+    System.out.println(criteria);
 
-      return criteria;
+    return criteria;
   }
 
   private static Filter getFilter(String filterStr) {
@@ -150,18 +153,18 @@ public class Parser {
     if (filterStr.matches(OHLCV_PATTERN_STR)) {
       return new IndicatorFilter()
           .setIndicator(IndicatorEnum.valueOf(Character.toString(filterStr.charAt(filterStr.indexOf("]") + 1))))
-          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".") + 1, filterStr.length())));
     }
     if (filterStr.matches(FUNCTION_PATTERN_STR)) {
       return new IndicatorFilter()
           .setIndicator(IndicatorEnum.fromLine(filterStr))
-          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())))
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".") + 1, filterStr.length())))
           .setRange(Integer.valueOf(filterStr.substring(0, filterStr.indexOf(".")).replaceAll("[^0-9{1,4}]", "")));
     }
     if (filterStr.matches(DV_PATTERN_STR)) {
       return new IndicatorFilter()
           .setIndicator(IndicatorEnum.fromLine(filterStr))
-          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".")+1, filterStr.length())));
+          .setOffset(Integer.valueOf(filterStr.substring(filterStr.indexOf(".") + 1, filterStr.length())));
     }
 
     throw new RuntimeException("Unmatched filter. filterStr: " + filterStr);

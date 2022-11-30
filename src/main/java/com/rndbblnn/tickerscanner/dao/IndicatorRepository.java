@@ -17,11 +17,11 @@ public class IndicatorRepository {
 
   public static final String CREATE_TABLE_COLUMNS =
       "    id varchar(36) NOT NULL DEFAULT gen_random_uuid()," +
-      "    symbol varchar(12) NOT NULL," +
-      "    tick_time timestamp NOT NULL," +
-      "    value DOUBLE PRECISION NULL," +
-      "    CONSTRAINT %s_pk PRIMARY KEY (id)," +
-      "    CONSTRAINT %s_uk UNIQUE (symbol, tick_time)";
+          "    symbol varchar(12) NOT NULL," +
+          "    tick_time timestamp NOT NULL," +
+          "    value DOUBLE PRECISION NULL," +
+          "    CONSTRAINT %s_pk PRIMARY KEY (id)," +
+          "    CONSTRAINT %s_uk UNIQUE (symbol, tick_time)";
 
   @PersistenceContext
   private EntityManager entityManager;
@@ -56,7 +56,7 @@ public class IndicatorRepository {
   public void createIndTable(String tableName) {
     entityManager.createNativeQuery(
             "CREATE TABLE IF NOT EXISTS " + tableName +
-                " (" + String.format(CREATE_TABLE_COLUMNS, tableName, tableName)  +")"
+                " (" + String.format(CREATE_TABLE_COLUMNS, tableName, tableName) + ")"
         )
         .executeUpdate();
   }
@@ -137,7 +137,8 @@ public class IndicatorRepository {
     namedParameterJdbcTemplate.update(
         "UPDATE " + indicatorFilter.getTableName() + " src SET value = tmp.value \n" +
             "FROM (\n" +
-            "\t\tSELECT symbol, tick_time, " + aggFunctionFull + " OVER(ORDER BY symbol,tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
+            "\t\tSELECT symbol, tick_time, " + aggFunctionFull
+            + " OVER(ORDER BY symbol,tick_time ROWS BETWEEN :range PRECEDING AND CURRENT ROW) AS value\n" +
             "\t\tFROM candle_d\n" +
             ") tmp\n" +
             "  WHERE src.value IS NULL\n" +
@@ -196,5 +197,15 @@ public class IndicatorRepository {
       default:
         throw new RuntimeException("Unsupported ohlcv: " + ohlcv);
     }
+  }
+
+  public void crunchEMA(IndicatorFilter indicatorFilter) {
+    this.insertSymbols(indicatorFilter.getTableName());
+    namedParameterJdbcTemplate.update(
+        " UPDATE ind_d_ema200 src SET value = fn_ema_d(symbol, tick_time, :range) \n"
+            + " WHERE src.value IS NULL",
+        new MapSqlParameterSource().addValue("range", indicatorFilter.getRange())
+    );
+
   }
 }

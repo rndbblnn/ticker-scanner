@@ -60,6 +60,9 @@ public class CrunchService {
           case MAXDV:
             indicatorRepository.crunchDvAggFunction(indicatorFilter);
             break;
+          case EMA:
+            indicatorRepository.crunchEMA(indicatorFilter);
+            break;
           case ATR:
             indicatorRepository.crunchATR(indicatorFilter);
             break;
